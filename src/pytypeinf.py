@@ -56,10 +56,10 @@ def replace(replaced, replacement, replacements, replaces):
     :param replaced: type var
     :param replacements: dict(type var, type var)
     :param replaces: defaultdict(type var, set(type var))'''
-    if is_replaced(erplacement, replacements):
+    if is_replaced(replacement, replacements):
         raise TypeInfBug("Can't replace already replaced variable {}".format(replacement))
 
-    replacements.insert(replaced, replacement)
+    replacements[replaced] = replacement
     replaces[replacement].add(replaced)
 
 def infer_equality(equal_pairs, known_types):
@@ -85,15 +85,14 @@ def infer_equality(equal_pairs, known_types):
 
         equal_pairs.extend(merge_result.replacements)
 
-        replaced_with_rtv_b = replaces.get(rtv_b)
-        del replaces[rtv_b]
-
-        if replaced_with_rtv_b is not None:
+        if rtv_b in replaces:
+            replaced_with_rtv_b = replaces.pop(rtv_b)
             for old_replaced in replaced_with_rtv_b:
                 replace(old_replaced, rtv_a, replacements, replaces)
 
         replace(rtv_b, rtv_a, replacements, replaces)
-        del known_types[rtv_b]
+        if rtv_b in known_types:
+            del known_types[rtv_b]
 
     return InferenceResult(
         replacements=replacements,
@@ -103,7 +102,7 @@ def infer_equality(equal_pairs, known_types):
 def resolve_replacements(known_types, replacements):
     return {
         tvar: tcon.apply_replacements(replacements)
-        for (tvar, tcon) in known_types.iteritems()
+        for (tvar, tcon) in known_types.items()
     }
 
 def is_more_general_than(specific, general, resolutions):

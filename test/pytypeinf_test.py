@@ -44,6 +44,27 @@ class InferenceTest(unittest.TestCase):
         with self.assertRaises(TypeInfError):
             merge_types(TypeConstructor('foo', [1,2,3]), TypeConstructor('foo', [1]))
 
+    def test_merges_equal_types(self):
+        result = merge_types(
+            TypeConstructor('List', [10, 11, 12]),
+            TypeConstructor('List', [20, 21, 22]),
+        )
+
+        expected = MergeResult(
+            tcon=TypeConstructor(name='List', components=[10, 11, 12]),
+            replacements={10: 20, 11: 21, 12: 22},
+        )
+
+        self.assertEqual(expected, result)
+
+    def test_combines_two_variables(self):
+        result = infer_equality([(1, 2)], {})
+        expected = InferenceResult(
+            replacements={2: 1},
+            resolutions={},
+        )
+        self.assertEqual(expected, result)
+
 def list_type(inner):
     return TypeConstructor(name='List', components=[inner])
 
