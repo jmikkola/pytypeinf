@@ -22,7 +22,7 @@ class TypeConstructor(_TypeConstructor):
 InferenceResult = collections.namedtuple('InferenceResult', 'replacements resolutions')
 MergeResult = collections.namedtuple('MergeResult', 'tcon replacements')
 
-def merge_type(left, right):
+def merge_types(left, right):
     if left is None and right is None:
         return MergeResult(tcon=None, replacements={})
     elif left is None:

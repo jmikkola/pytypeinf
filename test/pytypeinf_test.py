@@ -38,6 +38,12 @@ class InferenceTest(unittest.TestCase):
             result = is_more_general_than(specific, general, resolutions)
             self.assertEqual(expected, result)
 
+    def test_detects_type_merge_problems(self):
+        with self.assertRaises(TypeInfError):
+            merge_types(TypeConstructor('foo', []), TypeConstructor('bar', []))
+        with self.assertRaises(TypeInfError):
+            merge_types(TypeConstructor('foo', [1,2,3]), TypeConstructor('foo', [1]))
+
 def list_type(inner):
     return TypeConstructor(name='List', components=[inner])
 
