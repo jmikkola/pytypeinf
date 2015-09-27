@@ -83,7 +83,7 @@ def infer_equality(equal_pairs, known_types):
         if merge_result.tcon is not None:
             known_types[rtv_a] = merge_result.tcon
 
-        equal_pairs.extend(merge_result.replacements)
+        equal_pairs.extend(merge_result.replacements.items())
 
         if rtv_b in replaces:
             replaced_with_rtv_b = replaces.pop(rtv_b)

@@ -100,6 +100,17 @@ class InferenceTest(unittest.TestCase):
         )
         self.assertEqual(expected, result)
 
+    def test_rejects_mismatching_types(self):
+        with self.assertRaises(TypeInfError):
+            result = infer_equality([(1, 2)], {1: int_type(), 2: list_type(3)})
+
+    def test_merge_subtypes(self):
+        result = infer_equality([(1, 2)], {1: list_type(3), 2: list_type(4)})
+        expected = InferenceResult(
+            replacements={2: 1, 4: 3},
+            resolutions={1: list_type(3)},
+        )
+        self.assertEqual(expected, result)
 
 def list_type(inner):
     return TypeConstructor(name='List', components=[inner])
