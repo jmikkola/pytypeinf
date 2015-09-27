@@ -112,6 +112,17 @@ class InferenceTest(unittest.TestCase):
         )
         self.assertEqual(expected, result)
 
+    def test_replaces_subtypes(self):
+        result = infer_equality(
+            [(10, 3), (10, 11), (3, 12)],
+            {1: list_type(10), 2: pair_type(11, 12), 3: int_type()}
+        )
+        expected = InferenceResult(
+            replacements={3: 10, 11: 10, 12: 10},
+            resolutions={1: list_type(10), 2: pair_type(10, 10), 10: int_type()},
+        )
+        self.assertEqual(expected, result)
+
 def list_type(inner):
     return TypeConstructor(name='List', components=[inner])
 
