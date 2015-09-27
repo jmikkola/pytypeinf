@@ -8,13 +8,18 @@ class Graph:
         self._vertices = vertices
         self._edges = edges
 
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
+        return other._vertices == self._vertices and other._edges == self._edges
+
     @classmethod
     def new(cls):
         return cls(vertices=set(), edges=collections.defaultdict(set))
 
     @classmethod
     def with_vertices(cls, vertices):
-        return cls(vertices=set(vertices), edges=ollections.defaultdict(set))
+        return cls(vertices=set(vertices), edges=collections.defaultdict(set))
 
     @classmethod
     def from_edges(cls, edges):
@@ -23,7 +28,7 @@ class Graph:
         return g
 
     def __len__(self):
-        return len(self.vertices)
+        return len(self._vertices)
 
     def add_edge(self, start, end):
         self._vertices.add(start)
@@ -35,9 +40,9 @@ class Graph:
             self.add_edge(start, end)
 
     def invert(self):
-        inverted = self.with_vertices(self.vertices)
+        inverted = self.with_vertices(self._vertices)
 
-        for start, ends in self._edges:
+        for start, ends in self._edges.items():
             for end in ends:
                 inverted.add_edge(end, start)
 
@@ -45,7 +50,7 @@ class Graph:
 
     def dfs(self, f):
         seen = set()
-        for v in self.vertices:
+        for v in self._vertices:
             self._walk_dfs(v, seen, f)
 
     def _walk_dfs(v, seen, f):
@@ -66,7 +71,7 @@ class Graph:
         stack = []
         components = []
 
-        for v in self.vertices:
+        for v in self._vertices:
             if v in indexes:
                 continue
             self._strong_conn(
