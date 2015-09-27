@@ -26,6 +26,11 @@ class GraphTest(unittest.TestCase):
 
         self.assertEqual(expected_vertices, actual_vertices)
 
+    def test_finds_strongly_connected_components(self):
+        result = multi_component_graph().strongly_connected_components()
+        expected = [{5, 6}, {2, 3, 7}, {0, 1, 4}]
+        self.assertEqual(expected, result)
+
 def multi_component_graph():
     return Graph.from_edges([
         (0, 1), (1, 2), (1, 4), (1, 5), (2, 3), (2, 6), (3, 2),

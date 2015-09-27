@@ -107,9 +107,9 @@ class Graph:
             component = set()
             while stack:
                 v = stack.pop()
-                is_stack.remove(v)
+                in_stack.remove(v)
 
-                component.insert(v)
+                component.add(v)
                 if v == root:
                     break
 
