@@ -28,16 +28,16 @@ class Graph:
     def add_edge(self, start, end):
         self._vertices.add(start)
         self._vertices.add(end)
-        self.edges[start].add(end)
+        self._edges[start].add(end)
 
     def add_edges(self, edges):
         for (start, end) in edges:
-            self.add_edges(start, end)
+            self.add_edge(start, end)
 
     def invert(self):
         inverted = self.with_vertices(self.vertices)
 
-        for start, ends in self.edges:
+        for start, ends in self._edges:
             for end in ends:
                 inverted.add_edge(end, start)
 
@@ -55,7 +55,7 @@ class Graph:
         seen.insert(v)
         f(v)
 
-        for child in self.edges.get(v, []):
+        for child in self._edges.get(v, []):
             self._walk_dfs(child, seen, f)
 
     def strongly_connected_components(self):
@@ -84,7 +84,7 @@ class Graph:
         indexes[root] = node_index
         lowlinks[root] = lowlink
 
-        for child in self.edges.get(root, []):
+        for child in self._edges.get(root, []):
             if child not in indexes:
                 child_lowlink = self._strong_conn(
                     child, index, indexes, lowlinks, in_stack, stack, components
