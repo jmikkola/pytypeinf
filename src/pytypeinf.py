@@ -138,7 +138,7 @@ def is_tcon_more_general(specific, general, resolutions, replacements):
 
     return all(
         can_substitute_for(sc, gc, resolutions, replacements)
-        for (sc, rc) in zip(specific.components, general.components)
+        for (sc, gc) in zip(specific.components, general.components)
     )
 
 def collect_subvars(var, known_types):
@@ -158,3 +158,7 @@ def collect_subvars_rec(var, known_types, result):
 GenericExpansion = collections.namedtuple(
     'GenericExpansion', 'equal_pairs generic_relations'
 )
+
+def expand_generics(generic_vars, equal_pairs, known_types):
+    # TODO!
+    return GenericExpansion([], [])
