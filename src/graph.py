@@ -48,16 +48,19 @@ class Graph:
 
         return inverted
 
+    def get_vertices(self):
+        return list(self._vertices)
+
     def dfs(self, f):
         seen = set()
         for v in self._vertices:
             self._walk_dfs(v, seen, f)
 
-    def _walk_dfs(v, seen, f):
+    def _walk_dfs(self, v, seen, f):
         if v in seen:
             return
 
-        seen.insert(v)
+        seen.add(v)
         f(v)
 
         for child in self._edges.get(v, []):
@@ -81,7 +84,7 @@ class Graph:
         return components
 
     def _strong_conn(self, root, index, indexes, lowlinks, in_stack, stack, components):
-        stack.push(root)
+        stack.append(root)
         in_stack.add(root)
 
         node_index = next(index)
@@ -110,6 +113,6 @@ class Graph:
                 if v == root:
                     break
 
-            components.push(component)
+            components.append(component)
 
         return lowlink
