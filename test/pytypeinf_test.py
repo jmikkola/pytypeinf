@@ -65,6 +65,42 @@ class InferenceTest(unittest.TestCase):
         )
         self.assertEqual(expected, result)
 
+    def test_combines_replaced_variable(self):
+        result = infer_equality([(1, 2), (2, 3)], {})
+        expected = InferenceResult(
+            replacements={2: 1, 3: 1},
+            resolutions={},
+        )
+        self.assertEqual(expected, result)
+
+    def test_merges_equal_type(self):
+        result = infer_equality([(1, 2)], {2: int_type()})
+        expected = InferenceResult(
+            replacements={2: 1},
+            resolutions={1: int_type()},
+        )
+        self.assertEqual(expected, result)
+
+    def test_ignores_duplicate_rule(self):
+        result = infer_equality([(1, 2), (2, 1), (1, 2)], {})
+        expected = InferenceResult(
+            replacements={2: 1},
+            resolutions={},
+        )
+        self.assertEqual(expected, result)
+
+    def test_ignores_redundant_rule(self):
+        result = infer_equality(
+            [(1, 2), (3, 4), (2, 3), (1, 4), (2, 4), (1, 3)],
+            {1: int_type(), 3: int_type()}
+        )
+        expected = InferenceResult(
+            replacements={2: 1, 3: 1, 4: 1},
+            resolutions={1: int_type()},
+        )
+        self.assertEqual(expected, result)
+
+
 def list_type(inner):
     return TypeConstructor(name='List', components=[inner])
 
