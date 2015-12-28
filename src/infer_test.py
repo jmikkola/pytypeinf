@@ -48,8 +48,21 @@ class InferTest(unittest.TestCase):
         self.assertEqual(types.get(2), None)
 
     def test_accepts_circular_generic_relations(self):
-        types, _ = Rules().specify(1, 'Int').instance_of(1, 2).instance_of(2, 1).infer()
+        types, _ = (
+            Rules().specify(1, 'Int').instance_of(1, 2).instance_of(2, 1)
+            .infer()
+        )
         self.assertEqual(types.get(2), 'Int')
+
+    def test_applies_recurisve_equality(self):
+        rules = (
+            Rules().specify(1, ('Pair', 11, 12)).specify(2, ('Pair', 21, 22))
+            .specify(11, 'Int').specify(22, 'String')
+            .equal(1, 2)
+        )
+        types, subs = rules.infer()
+        self.assertEqual({1: ('Pair', 11, 22), 11: 'Int', 22: 'String'}, types)
+        self.assertEqual({2: 1, 21: 11, 12: 22}, subs)
 
 if __name__ == '__main__':
     unittest.main()

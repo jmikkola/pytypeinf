@@ -3,7 +3,7 @@ from graph import Graph
 class InferenceError(Exception):
     pass
 
-def dict_map(d, fn):
+def dict_map(fn, d):
     return {k: fn(v) for k, v in d.items()}
 
 class Rules:
@@ -140,12 +140,14 @@ class Rules:
             elif replacement in types:
                 del types[replacement]
 
+            types = self._apply_sub_to_types(types, replaced, replacement)
+
         return types, subs
 
     def _add_replacement(self, old_subs, replaced, replacement):
         if replaced == replacement:
             return old_subs
-        subs = dict_map(old_subs, lambda t: replacement if t == replaced else t)
+        subs = dict_map(lambda t: replacement if t == replaced else t, old_subs)
         subs[replaced] = replacement
         return subs
 
@@ -161,9 +163,22 @@ class Rules:
         return t1, new_rules
 
     def _type_con(self, type_spec):
-        # TODO: support type constructors
+        if isinstance(type_spec, tuple):
+            return type_spec[0]
         return type_spec
 
     def _type_vars(self, type_spec):
-        # TODO: support type constructors
+        if isinstance(type_spec, tuple):
+            return type_spec[1:]
         return []
+
+    def _apply_sub_to_type(self, type_spec, replaced, replacement):
+        replace = lambda v: replacement if v == replaced else v
+        if isinstance(type_spec, tuple):
+            updated = list(map(replace, type_spec[1:]))
+            return tuple([type_spec[0]] + updated)
+        return type_spec
+
+    def _apply_sub_to_types(self, types, replaced, replacement):
+        replacer = lambda t: self._apply_sub_to_type(t, replaced, replacement)
+        return dict_map(replacer, types)
