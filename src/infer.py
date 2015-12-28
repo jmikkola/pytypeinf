@@ -7,32 +7,20 @@ def dict_map(fn, d):
     return {k: fn(v) for k, v in d.items()}
 
 class Rules:
-    def __init__(self, known_types=None):
-        if known_types is None:
-            known_types = {}
-        self._known_types = known_types
-        self._known_vars = set()
+    def __init__(self):
         self._equal_rules = []
         self._specified_types = []
         self._generic_relations = []
 
-    def add_var(self, t):
-        self._known_vars.add(t)
-
     def equal(self, t1, t2):
-        self.add_var(t1)
-        self.add_var(t2)
         self._equal_rules.append( (t1, t2) )
         return self
 
     def specify(self, t1, given):
-        self.add_var(t1)
         self._specified_types.append( (t1, given) )
         return self
 
     def instance_of(self, instance, general):
-        self.add_var(instance)
-        self.add_var(general)
         self._generic_relations.append( (instance, general) )
         return self
 
