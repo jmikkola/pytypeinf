@@ -79,5 +79,43 @@ class InferTest(unittest.TestCase):
         }
         self.assertEqual((expected_types, {}), rules.infer())
 
+    def test_allows_multiple_generic_instantiations(self):
+        rules = (
+            Rules().specify(1, ('List', 11))
+            .specify(2, ('List', 21)).specify(3, ('List', 31))
+            .specify(21, 'Int').specify(31, 'String')
+            .instance_of(2, 1).instance_of(3, 1)
+        )
+        expected_types = {
+            1: ('List', 11),
+            2: ('List', 21),
+            3: ('List', 31),
+            21: 'Int',
+            31: 'String',
+        }
+        self.assertEqual((expected_types, {}), rules.infer())
+
+    def test_applies_generics_for_multiple_levels(self):
+        rules = (
+            Rules().specify(1, ('List', 11)).specify(11, 'Int')
+            .instance_of(2, 1).instance_of(3, 1)
+        )
+        expected_types = {
+            1: ('List', 11),
+            2: ('List', 11),
+            3: ('List', 11),
+            11: 'Int',
+        }
+        self.assertEqual((expected_types, {}), rules.infer())
+
+    def test_catches_generic_errors_with_separation(self):
+        rules = (
+            Rules().specify(1, ('List', 11)).specify(11, 'Int')
+            .specify(3, ('List', 31)).specify(31, 'String')
+            .instance_of(2, 1).instance_of(3, 1)
+        )
+        with self.assertRaises(InferenceError):
+            rules.infer()
+
 if __name__ == '__main__':
     unittest.main()
