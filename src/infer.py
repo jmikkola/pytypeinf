@@ -30,10 +30,10 @@ class Rules:
         self._specified_types.append( (t1, given) )
         return self
 
-    def instance_of(self, t1, t2):
-        self.add_var(t1)
-        self.add_var(t2)
-        self._generic_relations.append( (t1, t2) )
+    def instance_of(self, instance, general):
+        self.add_var(instance)
+        self.add_var(general)
+        self._generic_relations.append( (instance, general) )
         return self
 
     def infer(self):
