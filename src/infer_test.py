@@ -117,5 +117,20 @@ class InferTest(unittest.TestCase):
         with self.assertRaises(InferenceError):
             rules.infer()
 
+'''
+TODO: test this:
+
+data CrazyList a = CL a (CrazyList [a]) | End
+
+f :: CrazyList a -> Int
+f End         = 0
+f (CL x rest) = g x rest
+
+g :: a -> CrazyList [a] -> Int
+g x rest = 1 + (f rest)
+
+in this system
+'''
+
 if __name__ == '__main__':
     unittest.main()
