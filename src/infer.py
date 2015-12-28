@@ -60,7 +60,7 @@ class Rules:
                 types, subs = self._apply_equal_rules(equality_pairs, types, subs)
 
         generic_pairs = self._pick_generic_pairs(generic_relations, subcomps)
-        return self._apply_generic_rules(generic_pairs, types, subs)
+        return self._apply_generic_rules(generic_pairs, types), subs
 
     def _pick_generic_pairs(self, graph, subcomponents):
         pairs = []
@@ -70,7 +70,7 @@ class Rules:
                     pairs.append( (var, child_var) )
         return pairs
 
-    def _apply_generic_rules(self, generic_pairs, types, substitutions):
+    def _apply_generic_rules(self, generic_pairs, types):
         while generic_pairs:
             instance, general = generic_pairs.pop()
             # Substitutions should have already been applied
@@ -81,7 +81,7 @@ class Rules:
                 generic_pairs.extend(new_pairs)
             types[instance] = result
 
-        return types, substitutions
+        return types
 
     def _merge_generic(self, itype, gtype):
         if gtype is None:
