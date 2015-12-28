@@ -64,5 +64,20 @@ class InferTest(unittest.TestCase):
         self.assertEqual({1: ('Pair', 11, 22), 11: 'Int', 22: 'String'}, types)
         self.assertEqual({2: 1, 21: 11, 12: 22}, subs)
 
+    def test_applies_generics_recursively(self):
+        rules = (
+            Rules().specify(1, ('Pair', 11, 12)).specify(2, ('Pair', 21, 22))
+            .specify(11, 'Int').specify(22, 'String')
+            .instance_of(1, 2)
+        )
+        expected_types = {
+            1: ('Pair', 11, 12),
+            2: ('Pair', 21, 22),
+            11: 'Int',
+            12: 'String',
+            22: 'String',
+        }
+        self.assertEqual((expected_types, {}), rules.infer())
+
 if __name__ == '__main__':
     unittest.main()
