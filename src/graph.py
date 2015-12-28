@@ -27,6 +27,23 @@ class Graph:
         g.add_edges(edges)
         return g
 
+    @classmethod
+    def parse(cls, s):
+        vertices = set()
+        edges = []
+
+        lines = [l for l in [l.strip() for l in s.split('\n')] if l]
+        for line in lines:
+            parent, children = line.split(':')
+            vertices.add(parent)
+            for c in children.split():
+                edges.append((parent, c))
+
+        g = cls.from_edges(edges)
+        for v in vertices:
+            g.add_vertex(v)
+        return g
+
     def __len__(self):
         return len(self._vertices)
 
@@ -47,6 +64,9 @@ class Graph:
                 inverted.add_edge(end, start)
 
         return inverted
+
+    def add_vertex(self, name):
+        self._vertices.add(name)
 
     def get_vertices(self):
         return list(self._vertices)
