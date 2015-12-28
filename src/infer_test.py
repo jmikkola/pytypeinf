@@ -47,5 +47,9 @@ class InferTest(unittest.TestCase):
         types, _ = Rules().specify(1, 'Int').instance_of(1, 2).infer()
         self.assertEqual(types.get(2), None)
 
+    def test_accepts_circular_generic_relations(self):
+        types, _ = Rules().specify(1, 'Int').instance_of(1, 2).instance_of(2, 1).infer()
+        self.assertEqual(types.get(2), 'Int')
+
 if __name__ == '__main__':
     unittest.main()

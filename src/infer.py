@@ -1,4 +1,4 @@
-import graph
+from graph import Graph
 
 class InferenceError(Exception):
     pass
@@ -38,12 +38,36 @@ class Rules:
 
     def infer(self):
         types, subs = self._collapse_equal()
+        return self._apply_generics(types, subs)
+
+    def _equality_pairs_from_set(self, items):
+        if len(items) < 2:
+            return []
+        ii = iter(items)
+        primary = next(ii)
+        return [(primary, item) for item in ii]
+
+    def _apply_generics(self, types, subs):
+        generic_relations = Graph.from_edges(self._generic_relations)
+        subcomps = generic_relations.strongly_connected_components()
+        for subcomponent in subcomps:
+            equality_pairs = self._equality_pairs_from_set(subcomponent)
+            if equality_pairs:
+                types, subs = self._apply_equal_rules(equality_pairs, types, subs)
+
+        # TODO: actually apply the relations...
         return types, subs
 
     def _collapse_equal(self):
+        types, adtnl_equal_rules = self._collapse_specified_types()
+        equal_rules = self._equal_rules + adtnl_equal_rules
+        return self._apply_equal_rules(equal_rules, types, subs={})
+
+    def _collapse_specified_types(self):
+        ''' This handles any case where twoo types have
+        been given for the same variable. '''
         types = {}
-        subs = {}
-        equal_rules = [r for r in self._equal_rules]
+        equal_rules = []
 
         for var, given in self._specified_types:
             result, new_rules = self._merge_types(types.get(var), given)
@@ -51,6 +75,9 @@ class Rules:
                 equal_rules.extend(new_rules)
             types[var] = result
 
+        return types, equal_rules
+
+    def _apply_equal_rules(self, equal_rules, types, subs):
         while equal_rules:
             t1, t2 = equal_rules.pop()
             t1, t2 = subs.get(t1, t1), subs.get(t2, t2)
@@ -64,7 +91,6 @@ class Rules:
             else:
                 replacement, replaced = t1, t2
 
-            # TODO: handle existing subs
             result, new_rules = self._merge_types(type1, type2)
             if new_rules:
                 equal_rules.extend(new_rules)
@@ -104,33 +130,3 @@ class Rules:
     def _type_vars(self, type_spec):
         # TODO: support type constructors
         return []
-
-def infer(rules, known_types):
-    rules, subs = collapse_equal(rules)
-    rules = expand_generic_relations(rules)
-    rules = apply_generic_relations(rules)
-    return rules_to_variables(rules, subs)
-
-def rules_to_variables(rules, subs):
-    variables = dict(rules)
-    for replaced, replacement in subs.iteritems():
-        variables[replaced] = variables[replacement]
-    return variables
-
-def expand_generic_relations(rules):
-    # TODO
-    return rules
-
-def apply_generic_relations(rules):
-    # graph = graph_from_rules(rules)
-    # components = graph.strongly_connected_components()
-    # -- Do they already come out sorted?
-    # ordered_components = order_components(components, graph)
-    # component_types = {}
-    # for component in ordered_component:
-    #     component_types[component] = resolve_type(component)
-    return rules
-
-def collapse_equal(rules):
-    # TODO
-    return rules, {}
