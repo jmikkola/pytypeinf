@@ -123,6 +123,27 @@ class InferenceTest(unittest.TestCase):
         )
         self.assertEqual(expected, result)
 
+    def test_expands_empty_generics(self):
+        self.assertEqual(
+            GenericExpansion(equal_pairs=[], generic_relations=[]),
+            expand_generics(set(), [], {})
+        )
+
+    def test_expands_with_no_generics(self):
+        self.assertEqual(
+            GenericExpansion(equal_pairs=[(1,2), (3,4)], generic_relations=[]),
+            expand_generics(set(), [(1,2), (3,4)], {})
+        )
+
+'''
+Nope, that whole way of expanding generics isn't going to work because
+it doesn't provide any way of distinguishing between type variables
+that are inside the function (and thus should be kept as generic as
+possible) and type variables of the caller (which may be more
+specific).
+'''
+
+
 def list_type(inner):
     return TypeConstructor(name='List', components=[inner])
 

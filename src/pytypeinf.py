@@ -159,5 +159,4 @@ GenericExpansion = collections.namedtuple(
 )
 
 def expand_generics(generic_vars, equal_pairs, known_types):
-    # TODO!
-    return GenericExpansion([], [])
+    return GenericExpansion(equal_pairs, [])
