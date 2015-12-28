@@ -3,6 +3,9 @@ import graph
 class InferenceError(Exception):
     pass
 
+def dict_map(d, fn):
+    return {k: fn(v) for k, v in d.items()}
+
 class Rules:
     def __init__(self, known_types=None):
         if known_types is None:
@@ -50,20 +53,38 @@ class Rules:
 
         while equal_rules:
             t1, t2 = equal_rules.pop()
+            t1, t2 = subs.get(t1, t1), subs.get(t2, t2)
+            type1, type2 = types.get(t1), types.get(t2)
+
+            # Default to the type that is set to make the output
+            # more predictable. This doesn't actually do anything
+            # for the algorithm.
+            if type1 is None and type2 is not None:
+                replacement, replaced = t2, t1
+            else:
+                replacement, replaced = t1, t2
+
             # TODO: handle existing subs
-            result, new_rules = self._merge_types(types.get(t1), types.get(t2))
+            result, new_rules = self._merge_types(type1, type2)
             if new_rules:
                 equal_rules.extend(new_rules)
-            subs[t2] = t1
-            if t2 in types:
-                del types[t2]
+            subs = self._add_replacement(subs, replaced, replacement)
+            if replaced in types:
+                del types[replaced]
 
             if result is not None:
-                types[t1] = result
-            elif t1 in types:
-                del types[t1]
+                types[replacement] = result
+            elif replacement in types:
+                del types[replacement]
 
         return types, subs
+
+    def _add_replacement(self, old_subs, replaced, replacement):
+        if replaced == replacement:
+            return old_subs
+        subs = dict_map(old_subs, lambda t: replacement if t == replaced else t)
+        subs[replaced] = replacement
+        return subs
 
     def _merge_types(self, t1, t2):
         if t1 is None:
