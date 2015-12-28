@@ -52,6 +52,9 @@ class Graph:
         self._vertices.add(end)
         self._edges[start].add(end)
 
+    def get_children(self, node):
+        return list(self._edges[node])
+
     def add_edges(self, edges):
         for (start, end) in edges:
             self.add_edge(start, end)

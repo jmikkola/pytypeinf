@@ -48,15 +48,52 @@ class Rules:
         return [(primary, item) for item in ii]
 
     def _apply_generics(self, types, subs):
-        generic_relations = Graph.from_edges(self._generic_relations)
+        subbed_generic_relations = [
+            (subs.get(i, i), subs.get(g, g))
+            for (i, g) in self._generic_relations
+        ]
+        generic_relations = Graph.from_edges(subbed_generic_relations)
         subcomps = generic_relations.strongly_connected_components()
         for subcomponent in subcomps:
             equality_pairs = self._equality_pairs_from_set(subcomponent)
             if equality_pairs:
                 types, subs = self._apply_equal_rules(equality_pairs, types, subs)
 
-        # TODO: actually apply the relations...
-        return types, subs
+        generic_pairs = self._pick_generic_pairs(generic_relations, subcomps)
+        return self._apply_generic_rules(generic_pairs, types, subs)
+
+    def _pick_generic_pairs(self, graph, subcomponents):
+        pairs = []
+        for subcomponent in subcomponents:
+            for var in subcomponent:
+                for child_var in graph.get_children(var):
+                    pairs.append( (var, child_var) )
+        return pairs
+
+    def _apply_generic_rules(self, generic_pairs, types, substitutions):
+        while generic_pairs:
+            instance, general = generic_pairs.pop()
+            # Substitutions should have already been applied
+            itype, gtype = types.get(instance), types.get(general)
+
+            result, new_pairs = self._merge_generic(itype, gtype)
+            if new_pairs:
+                generic_pairs.extend(new_pairs)
+            types[instance] = result
+
+        return types, substitutions
+
+    def _merge_generic(self, itype, gtype):
+        if gtype is None:
+            return itype, []
+        elif itype is None:
+            return gtype, []
+        else:
+            if self._type_con(itype) != self._type_con(gtype):
+                raise InferenceError('{} is not a subtype of {}'
+                                     .format(itype, gtype))
+            new_rules = zip(self._type_vars(itype), self._type_vars(gtype))
+            return itype, new_rules
 
     def _collapse_equal(self):
         types, adtnl_equal_rules = self._collapse_specified_types()
