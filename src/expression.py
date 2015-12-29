@@ -19,6 +19,7 @@ class Variable(Expression):
 
     def add_to_rules(self, rules, registry):
         id_ = 'var_' + self._name
+        # TODO: generic expansion (how?)
         registry.ensure_registered_as(id_, self)
         return id_
 
@@ -41,7 +42,6 @@ class Application(Expression):
     def add_to_rules(self, rules, registry):
         id_ = registry.add_to_registry(self)
 
-        # TODO: generic expansion (how?)
         fn_id = self._fn_expr.add_to_rules(rules, registry)
         arg_ids = [
             arg.add_to_rules(rules, registry)
