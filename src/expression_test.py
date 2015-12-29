@@ -2,10 +2,12 @@
 
 import unittest
 
+from expression import Application
+from expression import Lambda
+from expression import Let
+from expression import Literal
 from expression import TypedExpression
 from expression import Variable
-from expression import Literal
-from expression import Application
 from infer import Registry
 
 class TestingRules:
@@ -54,6 +56,22 @@ class ExpressionTest(unittest.TestCase):
         l_id = self._registry.get_id_for(l)
 
         self.assertIn((a_id, ('Fn_1', v_id, l_id)), self._rules.specify_calls)
+
+    def test_let(self):
+        lt = Let(
+            ['x', 'y'], [Variable('y'), Literal('Int', 123)],
+            Variable('x')
+        )
+        ltid = lt.add_to_rules(self._rules, self._registry)
+        # TODO
+
+    def test_lambda_exprssion(self):
+        lm = Lambda(['x'], Variable('x'))
+        lmid = lm.add_to_rules(self._rules, self._registry)
+        # TODO
+
+    def test_let_with_lambda(self):
+        pass # TODO
 
 if __name__ == '__main__':
     unittest.main()

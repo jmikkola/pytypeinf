@@ -52,3 +52,20 @@ class Application(Expression):
 
         rules.specify(id_, this_type)
         return id_
+
+class Let(Expression):
+    def __init__(self, bind_vars, bind_exprs, body_expr):
+        self._vars = bind_vars
+        self._exprs = bind_exprs
+        self._body = body_expr
+
+    def add_to_rules(self, rules, registry):
+        pass
+
+class Lambda(Expression):
+    def __init__(self, arg_names, body_expr):
+        self._arg_names = arg_names
+        self._body = body_expr
+
+    def add_to_rules(self, rules, registry):
+        pass
