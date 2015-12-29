@@ -10,6 +10,7 @@ class Registry:
     def __init__(self):
         self._next_id = 1
         self._id_to_expression = {}
+        self._expression_to_id = {}
 
     def generate_new_id(self):
         new_id = self._next_id
@@ -22,10 +23,19 @@ class Registry:
                 'can\'t register ID {} to {}, already registered to {}'
                 .format(id_, expr, self._id_to_expression[id_])
             )
+        if expr in self._expression_to_id:
+            raise Exception(
+                'can\'t register {} to ID {}, already registered to ID {}'
+                .format(expr, id_, self._expression_to_id[expr])
+            )
         self._id_to_expression[id_] = expr
+        self._expression_to_id[expr] = id_
 
     def get_registered(self):
         return self._id_to_expression
+
+    def get_id_for(self, expr):
+        return self._expression_to_id.get(expr, None)
 
     def add_to_registry(self, expr):
         id_ = self.generate_new_id()

@@ -7,6 +7,7 @@ class TypedExpression(Expression):
 
     def add_to_rules(self, rules, registry):
         id_ = registry.add_to_registry(self)
+        # TODO: handle compound type here
         rules.specify(id_, self._type)
         inner_id = self._expr.add_to_rules(rules, registry)
         rules.equal(id_, inner_id)
@@ -27,6 +28,7 @@ class Literal(Expression):
 
     def add_to_rules(self, rules, registry):
         id_ = registry.add_to_registry(self)
+        # TODO: handle compound type here
         rules.specify(id_, self._type)
         return id_
 
@@ -38,6 +40,7 @@ class Application(Expression):
     def add_to_rules(self, rules, registry):
         id_ = registry.add_to_registry(self)
 
+        # TODO: generic expansion (how?)
         fn_id = self._fn_expr.add_to_rules(rules, registry)
         arg_ids = [
             arg.add_to_rules(rules, registry)
