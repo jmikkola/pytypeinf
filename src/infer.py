@@ -6,6 +6,32 @@ class InferenceError(Exception):
 def dict_map(fn, d):
     return {k: fn(v) for k, v in d.items()}
 
+class Registry:
+    def __init__(self):
+        self._next_id = 1
+        self._id_to_expression = {}
+
+    def generate_new_id(self):
+        new_id = self._next_id
+        self._next_id += 1
+        return new_id
+
+    def register_for_id(self, id_, expr):
+        if id_ in self._id_to_expression:
+            raise Exception(
+                'can\'t register ID {} to {}, already registered to {}'
+                .format(id_, expr, self._id_to_expression[id_])
+            )
+        self._id_to_expression[id_] = expr
+
+    def get_registered(self):
+        return self._id_to_expression
+
+    def add_to_registry(self, expr):
+        id_ = self.generate_new_id()
+        self.register_for_id(id_, expr)
+        return id_
+
 class Rules:
     def __init__(self):
         self._equal_rules = []

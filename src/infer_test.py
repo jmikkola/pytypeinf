@@ -2,7 +2,7 @@
 
 import unittest
 
-from infer import Rules, InferenceError
+from infer import Rules, Registry, InferenceError
 
 class InferTest(unittest.TestCase):
     def test_passthrough(self):
@@ -116,6 +116,24 @@ class InferTest(unittest.TestCase):
         )
         with self.assertRaises(InferenceError):
             rules.infer()
+
+    def test_generates_new_ids(self):
+        registry = Registry()
+        self.assertEqual([1, 2, 3, 4],
+                         [registry.generate_new_id() for _ in range(4)])
+
+    def test_catches_duplicate_use_of_ids(self):
+        registry = Registry()
+        registry.register_for_id(1, 'x')
+        with self.assertRaises(Exception):
+            registry.register_for_id(1, 'x')
+
+    def test_add_and_get_from_registry(self):
+        registry = Registry()
+        id1 = registry.add_to_registry('x')
+        id2 = registry.add_to_registry('y')
+        self.assertEqual('x', registry.get_registered()[id1])
+        self.assertEqual('y', registry.get_registered()[id2])
 
 '''
 TODO: test this:
