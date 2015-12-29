@@ -19,6 +19,7 @@ class Variable(Expression):
 
     def add_to_rules(self, rules, registry):
         id_ = 'var_' + self._name
+        registry.ensure_registered_as(id_, self)
         return id_
 
 class Literal(Expression):

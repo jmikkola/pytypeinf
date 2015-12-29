@@ -39,13 +39,21 @@ class ExpressionTest(unittest.TestCase):
         te = TypedExpression('Num', l)
         te_id = te.add_to_rules(self._rules, self._registry)
         l_id = self._registry.get_id_for(l)
-        self.assertTrue(te_id > 0)
-        self.assertTrue(l_id > 0)
         self.assertNotEqual(l_id, te_id)
         self.assertSetEqual(
             set([(te_id, 'Num'), (l_id, 'Int')]),
             set(self._rules.specify_calls)
         )
+
+    def test_application(self):
+        v = Variable('times2')
+        l = Literal('Int', 123)
+        a = Application(v, [l])
+        a_id = a.add_to_rules(self._rules, self._registry)
+        v_id = self._registry.get_id_for(v)
+        l_id = self._registry.get_id_for(l)
+
+        self.assertIn((a_id, ('Fn_1', v_id, l_id)), self._rules.specify_calls)
 
 if __name__ == '__main__':
     unittest.main()

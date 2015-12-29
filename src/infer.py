@@ -31,6 +31,10 @@ class Registry:
         self._id_to_expression[id_] = expr
         self._expression_to_id[expr] = id_
 
+    def ensure_registered_as(self, id_, expr):
+        if id_ not in self._id_to_expression:
+            self.register_for_id(id_, expr)
+
     def get_registered(self):
         return self._id_to_expression
 
