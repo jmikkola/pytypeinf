@@ -3,6 +3,7 @@
 import unittest
 
 from infer import Rules, Registry, InferenceError
+from expression import Literal
 
 class InferTest(unittest.TestCase):
     def test_passthrough(self):
@@ -134,6 +135,15 @@ class InferTest(unittest.TestCase):
         id2 = registry.add_to_registry('y')
         self.assertEqual('x', registry.get_registered()[id1])
         self.assertEqual('y', registry.get_registered()[id2])
+
+    def test_inferring_literal(self):
+        registry = Registry()
+        rules = Rules()
+        l = Literal('Int', 123)
+        l_id = l.add_to_rules(rules, registry)
+
+        expected_types = {l_id: 'Int'}
+        self.assertEqual((expected_types, {}), rules.infer())
 
 '''
 TODO: test this:
