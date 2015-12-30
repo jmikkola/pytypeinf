@@ -39,7 +39,6 @@ class InferenceTest(unittest.TestCase):
         # TODO: this test is relying on accidental order of processing
         self.assertEqual(({te_id: 'Int'}, {lit_id: te_id}), self._rules.infer())
 
-'''
     def test_application(self):
         v = Variable('times2')
         l = Literal('Int', 123)
@@ -48,8 +47,10 @@ class InferenceTest(unittest.TestCase):
         v_id = self._registry.get_id_for(v)
         l_id = self._registry.get_id_for(l)
 
-        self.assertIn((v_id, ('Fn_1', l_id, a_id)), self._rules.specify_calls)
+        expected_types = {l_id: 'Int', v_id: ('Fn_1', l_id, a_id)}
+        self.assertEqual((expected_types, {}), self._rules.infer())
 
+'''
     def test_let(self):
         l = Literal('Int', 123)
         lt = Let(['x', 'y'], [Variable('y'), l], Variable('x'))
