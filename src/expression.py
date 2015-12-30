@@ -1,3 +1,5 @@
+from infer import InferenceError
+
 class Expression:
     def __str__(self):
         return repr(self)
@@ -29,9 +31,17 @@ class Variable(Expression):
         self._name = name
 
     def add_to_rules(self, rules, registry):
-        generic_id = registry.add_to_registry(self)
-        rules.instance_of(generic_id, var_name_id(self._name))
-        return generic_id
+        scoped_var = registry.lookup_var_in_scope(self._name)
+        if scoped_var is None:
+            raise InferenceError('Variable {} is not defined'.format(self._name))
+
+        scoped_var_id, is_generic = scoped_var
+        if is_generic:
+            generic_id = registry.add_to_registry(self)
+            rules.instance_of(generic_id, scoped_var_id)
+            return generic_id
+        else:
+            return scoped_var_id
 
     def __repr__(self):
         return 'Variable({})'.format(self._name)
@@ -78,16 +88,24 @@ class Let(Expression):
 
     def add_to_rules(self, rules, registry):
         id_ = registry.add_to_registry(self)
-        # TODO: so far, this is assuming that variable names are unique across
-        # all scopes.
+
+        scoped_var_names = {
+            name: 'var_{}_{}'.format(name, registry.generate_new_id())
+            for (name, _) in self._bindings
+        }
+        registry.push_new_scope({
+            name: (scoped_var_names[name], True)
+            for (name, _) in self._bindings
+        })
+
+        for name, expr in self._bindings:
+            expr_id = expr.add_to_rules(rules, registry)
+            rules.equal(scoped_var_names[name], expr_id)
 
         body_id = self._body.add_to_rules(rules, registry)
         rules.equal(id_, body_id)
 
-        for name, expr in self._bindings:
-            expr_id = expr.add_to_rules(rules, registry)
-            rules.equal(var_name_id(name), expr_id)
-
+        registry.pop_current_scope()
         return id_
 
     def __repr__(self):
@@ -101,15 +119,24 @@ class Lambda(Expression):
     def add_to_rules(self, rules, registry):
         id_ = registry.add_to_registry(self)
 
-        body_id = self._body.add_to_rules(rules, registry)
-        arg_ids = [var_name_id(name) for name in self._arg_names]
+        scoped_var_names = {
+            name: 'var_{}_{}'.format(name, registry.generate_new_id())
+            for name in self._arg_names
+        }
+        # False because this doesn't support 2nd order polymorphism
+        registry.push_new_scope({
+            name: (scoped_var_names[name], False)
+            for name in self._arg_names
+        })
 
-        # TODO: so far, this is assuming that variable names are unique across
-        # all scopes.
+        body_id = self._body.add_to_rules(rules, registry)
+        arg_ids = [scoped_var_names[name] for name in self._arg_names]
+
         type_name = fn_type_name(len(arg_ids))
         this_type = tuple([type_name] + arg_ids + [body_id])
         rules.specify(id_, this_type)
 
+        registry.pop_current_scope()
         return id_
 
     def __repr__(self):

@@ -15,7 +15,14 @@ class InferenceTest(unittest.TestCase):
         self._rules = Rules()
         self._registry = Registry()
 
-    def test_variable(self):
+    def test_nonpolymorphic_variable(self):
+        self._registry.push_new_scope({'foo': ('var_foo_1', False)})
+        v = Variable('foo')
+        v_id = v.add_to_rules(self._rules, self._registry)
+        self.assertEqual(Result({}, {}), self._rules.infer())
+
+    def test_polymorphic_variable(self):
+        self._registry.push_new_scope({'foo': ('var_foo_1', True)})
         v = Variable('foo')
         v_id = v.add_to_rules(self._rules, self._registry)
         self.assertEqual(Result({}, {}), self._rules.infer())
@@ -41,6 +48,7 @@ class InferenceTest(unittest.TestCase):
         self.assertEqual('Int', result.get_type_by_id(lit_id))
 
     def test_application(self):
+        self._registry.push_new_scope({'times2': ('var_times2_1', True)})
         v = Variable('times2')
         l = Literal('Int', 123)
         a = Application(v, [l])

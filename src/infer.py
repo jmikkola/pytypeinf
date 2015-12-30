@@ -18,6 +18,20 @@ class Registry:
         self._next_id = 1
         self._id_to_expression = {}
         self._expression_to_id = {}
+        self._scope_stack = []
+
+    def lookup_var_in_scope(self, real_name):
+        for scope in self._scope_stack[::-1]:
+            if real_name in scope:
+                return scope[real_name]
+        # TODO: support globals (like `+`)
+        return None # Var is not bound
+
+    def push_new_scope(self, scope):
+        self._scope_stack.append(scope)
+
+    def pop_current_scope(self):
+        self._scope_stack.pop()
 
     def generate_new_id(self):
         new_id = self._next_id
