@@ -37,7 +37,10 @@ class Variable(Expression):
 
         scoped_var_id, is_generic = scoped_var
         if is_generic:
-            generic_id = registry.add_to_registry(self)
+            generic_id = 'gen_{}.{}'.format(
+                registry.generate_new_id(), scoped_var_id
+            )
+            registry.register_for_id(generic_id, self)
             rules.instance_of(generic_id, scoped_var_id)
             return generic_id
         else:
@@ -109,7 +112,7 @@ class Let(Expression):
         return id_
 
     def __repr__(self):
-        return 'Let({}, {}, {})'.format(self._vars, self._exprs, self._body)
+        return 'Let({}, {})'.format(self._bindings, self._body)
 
 class Lambda(Expression):
     def __init__(self, arg_names, body_expr):

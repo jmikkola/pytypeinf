@@ -20,6 +20,12 @@ class Registry:
         self._expression_to_id = {}
         self._scope_stack = []
 
+    def __repr__(self):
+        return (
+            'Registry(next_id={}, id2expr={}, scopes={})'
+            .format(self._next_id, self._id_to_expression, self._scope_stack)
+        )
+
     def lookup_var_in_scope(self, real_name):
         for scope in self._scope_stack[::-1]:
             if real_name in scope:
@@ -87,6 +93,8 @@ class Rules:
 
     def infer(self):
         types, subs = self._collapse_equal()
+        print('after collapse equal, types={}, subs={}'.format(types, subs))
+        print('generics = ', self._generic_relations)
         types1, subs1 = self._apply_generics(types, subs)
         return Result(types1, subs1)
 
@@ -126,8 +134,11 @@ class Rules:
             # Substitutions should have already been applied
             itype, gtype = types.get(instance), types.get(general)
 
+            # TODO: find equality statements
+            # (e.g. [(1, 10), (2, 10)] should set v1 = v2)
             result, new_pairs = self._merge_generic(itype, gtype)
             if new_pairs:
+                print('new_pairs: ', list(new_pairs))
                 generic_pairs.extend(new_pairs)
             if result is not None:
                 types[instance] = result
