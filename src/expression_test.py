@@ -30,15 +30,29 @@ class ExpressionTest(unittest.TestCase):
         self._rules = TestingRules()
         self._registry = Registry()
 
+    def test_variable_repr(self):
+        self.assertEqual('Variable(foo)', repr(Variable('foo')))
+
     def test_variable(self):
+        scoped_id = 'var_foo_1'
+        self._registry.push_new_scope({'foo': (scoped_id, False)})
         v = Variable('foo')
-        self.assertEqual('Variable(foo)', repr(v))
         v_id = v.add_to_rules(self._rules, self._registry)
-        self.assertIn((v_id, 'var_foo'), self._rules.instance_of_calls)
+        self.assertEqual(v_id, scoped_id)
+        self.assertEqual([], self._rules.instance_of_calls)
+
+    def test_polymorphic_variable(self):
+        scoped_id = 'var_foo_1'
+        self._registry.push_new_scope({'foo': (scoped_id, True)})
+        v = Variable('foo')
+        v_id = v.add_to_rules(self._rules, self._registry)
+        self.assertIn((v_id, scoped_id), self._rules.instance_of_calls)
+
+    def test_literal_repr(self):
+        self.assertEqual('Literal(Int, 123)', repr(Literal('Int', 123)))
 
     def test_literal(self):
         l = Literal('Int', 123)
-        self.assertEqual('Literal(Int, 123)', repr(l))
         l_id = l.add_to_rules(self._rules, self._registry)
         self.assertTrue(l_id > 0)
         self.assertEqual([(l_id, 'Int')], self._rules.specify_calls)
@@ -56,6 +70,8 @@ class ExpressionTest(unittest.TestCase):
         )
 
     def test_application(self):
+        scoped_id = 'var_times2_1'
+        self._registry.push_new_scope({'times2': (scoped_id, True)})
         v = Variable('times2')
         l = Literal('Int', 123)
         a = Application(v, [l])
@@ -63,7 +79,7 @@ class ExpressionTest(unittest.TestCase):
         v_id = self._registry.get_id_for(v)
         l_id = self._registry.get_id_for(l)
 
-        self.assertIn((v_id, 'var_times2'), self._rules.instance_of_calls)
+        self.assertIn((v_id, scoped_id), self._rules.instance_of_calls)
         self.assertIn((v_id, ('Fn_1', l_id, a_id)), self._rules.specify_calls)
 
     def test_simple_let(self):
@@ -73,7 +89,8 @@ class ExpressionTest(unittest.TestCase):
         lt_id = lt.add_to_rules(self._rules, self._registry)
         l1_id = self._registry.get_id_for(l1)
         l2_id = self._registry.get_id_for(l2)
-        self.assertIn(('var_x', l1_id), self._rules.equal_calls)
+        # TODO: the test is dependent on order for the name of var_x_1
+        self.assertIn(('var_x_2', l1_id), self._rules.equal_calls)
         self.assertIn((lt_id, l2_id), self._rules.equal_calls)
         self.assertEqual([], self._rules.instance_of_calls)
         self.assertIn((l1_id, 'Int'), self._rules.specify_calls)
@@ -95,7 +112,11 @@ class ExpressionTest(unittest.TestCase):
         lm = Lambda(['x'], lit) # The `x` argument is unused
         lm_id = lm.add_to_rules(self._rules, self._registry)
         lit_id = self._registry.get_id_for(lit)
-        self.assertIn((1, ('Fn_1', 'var_x', lit_id)), self._rules.specify_calls)
+        # TODO: test is dependant on order for the name of var_x_2
+        self.assertIn(
+            (1, ('Fn_1', 'var_x_2', lit_id)),
+            self._rules.specify_calls
+        )
         self.assertIn((lit_id, 'Int'), self._rules.specify_calls)
 
     '''
