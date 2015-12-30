@@ -5,6 +5,9 @@ class Expression:
 def fn_type_name(num_args):
     return 'Fn_{}'.format(num_args)
 
+def var_name_id(name):
+    return 'var_' + name
+
 class TypedExpression(Expression):
     def __init__(self, expr_type, expr):
         self._type = expr_type
@@ -26,11 +29,8 @@ class Variable(Expression):
         self._name = name
 
     def add_to_rules(self, rules, registry):
-        var_id = 'var_' + self._name
-        registry.ensure_registered_as(var_id, self)
-
-        generic_id = registry.generate_new_id()
-        rules.instance_of(generic_id, var_id)
+        generic_id = registry.add_to_registry(self)
+        rules.instance_of(generic_id, var_name_id(self._name))
         return generic_id
 
     def __repr__(self):
@@ -83,18 +83,11 @@ class Let(Expression):
         # all scopes.
 
         body_id = self._body.add_to_rules(rules, registry)
-        bound_var_ids = [
-            Variable(name).add_to_rules(rules, registry)
-            for name in self._vars
-        ]
-        bound_expr_ids = [
-            expr.add_to_rules(rules, registry)
-            for expr in self._exprs
-        ]
-
-        for var_id, expr_id in zip(bound_var_ids, bound_expr_ids):
-            rules.equal(var_id, expr_id)
         rules.equal(id_, body_id)
+
+        for name, expr in zip(self._vars, self._exprs):
+            expr_id = expr.add_to_rules(rules, registry)
+            rules.equal(var_name_id(name), expr_id)
 
         return id_
 
@@ -110,10 +103,7 @@ class Lambda(Expression):
         id_ = registry.add_to_registry(self)
 
         body_id = self._body.add_to_rules(rules, registry)
-        arg_ids = [
-            Variable(name).add_to_rules(rules, registry)
-            for name in self._arg_names
-        ]
+        arg_ids = [var_name_id(name) for name in self._arg_names]
 
         # TODO: so far, this is assuming that variable names are unique across
         # all scopes.

@@ -63,8 +63,8 @@ class ExpressionTest(unittest.TestCase):
         v_id = self._registry.get_id_for(v)
         l_id = self._registry.get_id_for(l)
 
-        self.assertIn((v_id, ('Fn_1', l_id, a_id)), self._rules.specify_calls)
         self.assertIn((v_id, 'var_times2'), self._rules.instance_of_calls)
+        self.assertIn((v_id, ('Fn_1', l_id, a_id)), self._rules.specify_calls)
 
     def test_let(self):
         l = Literal('Int', 123)
@@ -74,6 +74,14 @@ class ExpressionTest(unittest.TestCase):
         self.assertIn(('var_x', 'var_y'), self._rules.equal_calls)
         self.assertIn(('var_y', l_id), self._rules.equal_calls)
         self.assertIn((ltid, 'var_x'), self._rules.equal_calls)
+
+    def test_simple_lambda_expression(self):
+        lit = Literal('Int', 123)
+        lm = Lambda(['x'], lit) # The `x` argument is unused
+        lm_id = lm.add_to_rules(self._rules, self._registry)
+        lit_id = self._registry.get_id_for(lit)
+        self.assertIn((1, ('Fn_1', 'var_x', lit_id)), self._rules.specify_calls)
+        self.assertIn((lit_id, 'Int'), self._rules.specify_calls)
 
     def test_lambda_exprssion(self):
         lm = Lambda(['x'], Variable('x'))
