@@ -28,10 +28,12 @@ class ExpressionTest(unittest.TestCase):
 
     def test_variable(self):
         v = Variable('foo')
+        self.assertEqual('Variable(foo)', repr(v))
         self.assertEqual('var_foo', v.add_to_rules(self._rules, self._registry))
 
     def test_literal(self):
         l = Literal('Int', 123)
+        self.assertEqual('Literal(Int, 123)', repr(l))
         l_id = l.add_to_rules(self._rules, self._registry)
         self.assertTrue(l_id > 0)
         self.assertEqual([(l_id, 'Int')], self._rules.specify_calls)
@@ -39,6 +41,7 @@ class ExpressionTest(unittest.TestCase):
     def test_typed_expression(self):
         l = Literal('Int', 123)
         te = TypedExpression('Num', l)
+        self.assertEqual('TypedExpression(Num, Literal(Int, 123))', repr(te))
         te_id = te.add_to_rules(self._rules, self._registry)
         l_id = self._registry.get_id_for(l)
         self.assertNotEqual(l_id, te_id)
@@ -55,20 +58,24 @@ class ExpressionTest(unittest.TestCase):
         v_id = self._registry.get_id_for(v)
         l_id = self._registry.get_id_for(l)
 
-        self.assertIn((a_id, ('Fn_1', v_id, l_id)), self._rules.specify_calls)
+        self.assertIn((v_id, ('Fn_1', l_id, a_id)), self._rules.specify_calls)
 
     def test_let(self):
-        lt = Let(
-            ['x', 'y'], [Variable('y'), Literal('Int', 123)],
-            Variable('x')
-        )
+        l = Literal('Int', 123)
+        lt = Let(['x', 'y'], [Variable('y'), l], Variable('x'))
         ltid = lt.add_to_rules(self._rules, self._registry)
-        # TODO
+        l_id = self._registry.get_id_for(l)
+        self.assertIn(('var_x', 'var_y'), self._rules.equal_calls)
+        self.assertIn(('var_y', l_id), self._rules.equal_calls)
+        self.assertIn((ltid, 'var_x'), self._rules.equal_calls)
 
     def test_lambda_exprssion(self):
         lm = Lambda(['x'], Variable('x'))
         lmid = lm.add_to_rules(self._rules, self._registry)
-        # TODO
+        self.assertEqual(
+            [(1, ('Fn_1', 'var_x', 'var_x'))],
+             self._rules.specify_calls
+         )
 
     def test_let_with_lambda(self):
         pass # TODO
