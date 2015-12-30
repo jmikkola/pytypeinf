@@ -14,12 +14,16 @@ class TestingRules:
     def __init__(self):
         self.specify_calls = []
         self.equal_calls = []
+        self.instance_of_calls = []
 
     def specify(self, *args):
         self.specify_calls.append(args)
 
     def equal(self, *args):
         self.equal_calls.append(args)
+
+    def instance_of(self, *args):
+        self.instance_of_calls.append(args)
 
 class ExpressionTest(unittest.TestCase):
     def setUp(self):
@@ -29,7 +33,8 @@ class ExpressionTest(unittest.TestCase):
     def test_variable(self):
         v = Variable('foo')
         self.assertEqual('Variable(foo)', repr(v))
-        self.assertEqual('var_foo', v.add_to_rules(self._rules, self._registry))
+        v_id = v.add_to_rules(self._rules, self._registry)
+        self.assertIn((v_id, 'var_foo'), self._rules.instance_of_calls)
 
     def test_literal(self):
         l = Literal('Int', 123)
@@ -59,6 +64,7 @@ class ExpressionTest(unittest.TestCase):
         l_id = self._registry.get_id_for(l)
 
         self.assertIn((v_id, ('Fn_1', l_id, a_id)), self._rules.specify_calls)
+        self.assertIn((v_id, 'var_times2'), self._rules.instance_of_calls)
 
     def test_let(self):
         l = Literal('Int', 123)
