@@ -78,7 +78,14 @@ class ExpressionTest(unittest.TestCase):
          )
 
     def test_let_with_lambda(self):
-        pass # TODO
+        lm = Lambda(['x'], Variable('x'))
+        var_id = Variable('id')
+        app = Application(var_id, [Literal('Int', 123)])
+        lt = Let(['id'], [lm], app)
+
+        lt_id = lt.add_to_rules(self._rules, self._registry)
+        app_id = self._registry.get_id_for(app)
+        self.assertIn((lt_id, app_id), self._rules.equal_calls)
 
 if __name__ == '__main__':
     unittest.main()
