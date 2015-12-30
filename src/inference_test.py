@@ -67,7 +67,7 @@ class InferenceTest(unittest.TestCase):
         l_id = self._registry.get_id_for(l)
 
         result = self._rules.infer()
-        #self.assertEqual('Int', result.get_type_by_id(lt_id))
+        self.assertEqual('Int', result.get_type_by_id(lt_id))
         '''
         expected_types = {l_id: 'Int'}
         expected_subs = {lt_id: l_id, 'var_x': l_id, 'var_y': l_id}
@@ -102,8 +102,7 @@ class InferenceTest(unittest.TestCase):
         in (id id) 123
         '''
         lm = Lambda(['x'], Variable('x'))
-        var_id = Variable('id')
-        app1 = Application(var_id, [var_id])
+        app1 = Application(Variable('id'), [Variable('id')])
         app2 = Application(app1, [Literal('Int', 123)])
         lt = Let([('id', lm)], app2)
         lt_id = lt.add_to_rules(self._rules, self._registry)
