@@ -76,19 +76,16 @@ class InferenceTest(unittest.TestCase):
 
         result = self._rules.infer()
         self.assertEqual('Int', result.get_type_by_id(lt_id))
-        '''
-        expected_types = {l_id: 'Int'}
-        expected_subs = {lt_id: l_id, 'var_x': l_id, 'var_y': l_id}
-        self.assertEqual((expected_types, expected_subs), self._rules.infer())
-        '''
 
     def test_lambda_exprssion(self):
         lm = Lambda(['x'], Variable('x'))
         lmid = lm.add_to_rules(self._rules, self._registry)
 
-        expected_types = {lmid: ('Fn_1', 'var_x', 'var_x')}
-        expected_subs = {}
-        self.assertEqual((expected_types, expected_subs), self._rules.infer())
+        result = self._rules.infer()
+        self.assertEqual(
+            ('Fn_1', 'var_x_2', 'var_x_2'),
+            result.get_type_by_id(lmid)
+        )
 
     def test_let_with_lambda(self):
         ''' ML code:
