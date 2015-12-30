@@ -72,18 +72,31 @@ class InferenceTest(unittest.TestCase):
     def test_let_with_lambda(self):
         ''' ML code:
         let id = \\x -> x
-        in id 123
+        in id 'foo'
         '''
         lm = Lambda(['x'], Variable('x'))
         var_id = Variable('id')
         app = Application(var_id, [Literal('String', 'foo')])
         lt = Let(['id'], [lm], app)
-
         lt_id = lt.add_to_rules(self._rules, self._registry)
-        app_id = self._registry.get_id_for(app)
 
         result = self._rules.infer()
         self.assertEqual('String', result.get_type_by_id(lt_id))
+
+    def test_polymorphism(self):
+        ''' ML code:
+        let id = \\x -> x
+        in (id id) 123
+        '''
+        lm = Lambda(['x'], Variable('x'))
+        var_id = Variable('id')
+        app1 = Application(var_id, [var_id])
+        app2 = Application(app1, [Literal('Int', 123)])
+        lt = Let(['id'], [lm], app2)
+        lt_id = lt.add_to_rules(self._rules, self._registry)
+
+        result = self._rules.infer()
+        self.assertEqual('Int', result.get_type_by_id(lt_id))
 
 '''
 TODO: test this:
