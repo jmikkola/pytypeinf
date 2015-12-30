@@ -26,10 +26,12 @@ class Variable(Expression):
         self._name = name
 
     def add_to_rules(self, rules, registry):
-        id_ = 'var_' + self._name
-        # TODO: generic expansion (how?)
-        registry.ensure_registered_as(id_, self)
-        return id_
+        var_id = 'var_' + self._name
+        registry.ensure_registered_as(var_id, self)
+
+        generic_id = registry.generate_new_id()
+        rules.instance_of(generic_id, var_id)
+        return generic_id
 
     def __repr__(self):
         return 'Variable({})'.format(self._name)

@@ -48,8 +48,9 @@ class InferenceTest(unittest.TestCase):
         v_id = self._registry.get_id_for(v)
         l_id = self._registry.get_id_for(l)
 
-        expected_types = {l_id: 'Int', v_id: ('Fn_1', l_id, a_id)}
-        self.assertEqual((expected_types, {}), self._rules.infer())
+        result = self._rules.infer()
+        self.assertEqual('Int', result.get_type_by_id(l_id))
+        self.assertEqual('Int', result.get_type_by_id(a_id))
 
     def test_let(self):
         l = Literal('Int', 123)

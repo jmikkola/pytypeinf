@@ -115,7 +115,8 @@ class Rules:
             result, new_pairs = self._merge_generic(itype, gtype)
             if new_pairs:
                 generic_pairs.extend(new_pairs)
-            types[instance] = result
+            if result is not None:
+                types[instance] = result
 
         return types
 

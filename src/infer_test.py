@@ -135,5 +135,10 @@ class InferTest(unittest.TestCase):
         self.assertEqual('x', registry.get_registered()[id1])
         self.assertEqual('y', registry.get_registered()[id2])
 
+    def test_generics_with_no_types(self):
+        rules = Rules()
+        rules.instance_of(1, 2)
+        self.assertEqual(Result({}, {}), rules.infer())
+
 if __name__ == '__main__':
     unittest.main()
