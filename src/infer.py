@@ -116,7 +116,7 @@ class Rules:
                 types, subs = self._apply_equal_rules(equality_pairs, types, subs)
 
         generic_pairs = self._pick_generic_pairs(generic_relations, subcomps)
-        return self._apply_generic_rules(generic_pairs, types, subs)
+        return self._apply_generic_rules(generic_pairs[::-1], types, subs)
 
     def _pick_generic_pairs(self, graph, subcomponents):
         pairs = []
