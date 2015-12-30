@@ -50,25 +50,29 @@ class InferenceTest(unittest.TestCase):
         expected_types = {l_id: 'Int', v_id: ('Fn_1', l_id, a_id)}
         self.assertEqual((expected_types, {}), self._rules.infer())
 
-'''
     def test_let(self):
         l = Literal('Int', 123)
         lt = Let(['x', 'y'], [Variable('y'), l], Variable('x'))
-        ltid = lt.add_to_rules(self._rules, self._registry)
+        lt_id = lt.add_to_rules(self._rules, self._registry)
         l_id = self._registry.get_id_for(l)
-        self.assertIn(('var_x', 'var_y'), self._rules.equal_calls)
-        self.assertIn(('var_y', l_id), self._rules.equal_calls)
-        self.assertIn((ltid, 'var_x'), self._rules.equal_calls)
+
+        expected_types = {l_id: 'Int'}
+        expected_subs = {lt_id: l_id, 'var_x': l_id, 'var_y': l_id}
+        self.assertEqual((expected_types, expected_subs), self._rules.infer())
 
     def test_lambda_exprssion(self):
         lm = Lambda(['x'], Variable('x'))
         lmid = lm.add_to_rules(self._rules, self._registry)
-        self.assertEqual(
-            [(1, ('Fn_1', 'var_x', 'var_x'))],
-             self._rules.specify_calls
-         )
+
+        expected_types = {lmid: ('Fn_1', 'var_x', 'var_x')}
+        expected_subs = {}
+        self.assertEqual((expected_types, expected_subs), self._rules.infer())
 
     def test_let_with_lambda(self):
+        ''' ML code:
+        let id = \\x -> x
+        in id 123
+        '''
         lm = Lambda(['x'], Variable('x'))
         var_id = Variable('id')
         app = Application(var_id, [Literal('Int', 123)])
@@ -76,8 +80,14 @@ class InferenceTest(unittest.TestCase):
 
         lt_id = lt.add_to_rules(self._rules, self._registry)
         app_id = self._registry.get_id_for(app)
-        self.assertIn((lt_id, app_id), self._rules.equal_calls)
-'''
+
+        '''
+        expected_types = {
+        }
+        expected_subs = {
+        }
+        self.assertEqual((expected_types, expected_subs), self._rules.infer())
+        '''
 
 if __name__ == '__main__':
     unittest.main()
