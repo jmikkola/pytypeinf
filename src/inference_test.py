@@ -54,7 +54,7 @@ class InferenceTest(unittest.TestCase):
 
     def test_let(self):
         l = Literal('Int', 123)
-        lt = Let(['x'], [l], Variable('x'))
+        lt = Let([('x', l)], Variable('x'))
         lt_id = lt.add_to_rules(self._rules, self._registry)
 
         result = self._rules.infer()
@@ -62,7 +62,7 @@ class InferenceTest(unittest.TestCase):
 
     def test_multi_let(self):
         l = Literal('Int', 123)
-        lt = Let(['x', 'y'], [Variable('y'), l], Variable('x'))
+        lt = Let([('x', Variable('y')), ('y', l)], Variable('x'))
         lt_id = lt.add_to_rules(self._rules, self._registry)
         l_id = self._registry.get_id_for(l)
 
@@ -90,7 +90,7 @@ class InferenceTest(unittest.TestCase):
         lm = Lambda(['x'], Variable('x'))
         var_id = Variable('id')
         app = Application(var_id, [Literal('String', 'foo')])
-        lt = Let(['id'], [lm], app)
+        lt = Let([('id', lm)], app)
         lt_id = lt.add_to_rules(self._rules, self._registry)
 
         result = self._rules.infer()
@@ -105,7 +105,7 @@ class InferenceTest(unittest.TestCase):
         var_id = Variable('id')
         app1 = Application(var_id, [var_id])
         app2 = Application(app1, [Literal('Int', 123)])
-        lt = Let(['id'], [lm], app2)
+        lt = Let([('id', lm)], app2)
         lt_id = lt.add_to_rules(self._rules, self._registry)
 
         result = self._rules.infer()

@@ -72,9 +72,8 @@ class Application(Expression):
         return 'Application({}, {})'.format(self._fn_expr, self._arg_exprs)
 
 class Let(Expression):
-    def __init__(self, bind_vars, bind_exprs, body_expr):
-        self._vars = bind_vars
-        self._exprs = bind_exprs
+    def __init__(self, bindings, body_expr):
+        self._bindings = bindings
         self._body = body_expr
 
     def add_to_rules(self, rules, registry):
@@ -85,7 +84,7 @@ class Let(Expression):
         body_id = self._body.add_to_rules(rules, registry)
         rules.equal(id_, body_id)
 
-        for name, expr in zip(self._vars, self._exprs):
+        for name, expr in self._bindings:
             expr_id = expr.add_to_rules(rules, registry)
             rules.equal(var_name_id(name), expr_id)
 

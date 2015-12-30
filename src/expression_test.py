@@ -69,7 +69,7 @@ class ExpressionTest(unittest.TestCase):
     def test_simple_let(self):
         l1 = Literal('Int', 123)
         l2 = Literal('Int', 456)
-        lt = Let(['x'], [l1], l2)
+        lt = Let([('x', l1)], l2)
         lt_id = lt.add_to_rules(self._rules, self._registry)
         l1_id = self._registry.get_id_for(l1)
         l2_id = self._registry.get_id_for(l2)
@@ -82,7 +82,7 @@ class ExpressionTest(unittest.TestCase):
     '''
     def test_let(self):
         l = Literal('Int', 123)
-        lt = Let(['x', 'y'], [Variable('y'), l], Variable('x'))
+        lt = Let([('x', Variable('y')), ('y', l)], Variable('x'))
         ltid = lt.add_to_rules(self._rules, self._registry)
         l_id = self._registry.get_id_for(l)
         self.assertIn(('var_x', 'var_y'), self._rules.equal_calls)
@@ -112,7 +112,7 @@ class ExpressionTest(unittest.TestCase):
         lm = Lambda(['x'], Variable('x'))
         var_id = Variable('id')
         app = Application(var_id, [Literal('Int', 123)])
-        lt = Let(['id'], [lm], app)
+        lt = Let([('id', lm)], app)
 
         lt_id = lt.add_to_rules(self._rules, self._registry)
         app_id = self._registry.get_id_for(app)
