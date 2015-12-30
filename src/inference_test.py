@@ -99,7 +99,6 @@ class InferenceTest(unittest.TestCase):
         lt_id = lt.add_to_rules(self._rules, self._registry)
 
         result = self._rules.infer()
-        self.assertEqual({}, {'r': result, 'reg': self._registry})
         self.assertEqual('String', result.get_type_by_id(lt_id))
 
     def test_polymorphism(self):

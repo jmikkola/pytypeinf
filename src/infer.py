@@ -1,4 +1,4 @@
-from collections import namedtuple
+from collections import defaultdict, namedtuple
 
 from graph import Graph
 
@@ -93,8 +93,6 @@ class Rules:
 
     def infer(self):
         types, subs = self._collapse_equal()
-        print('after collapse equal, types={}, subs={}'.format(types, subs))
-        print('generics = ', self._generic_relations)
         types1, subs1 = self._apply_generics(types, subs)
         return Result(types1, subs1)
 
@@ -118,7 +116,7 @@ class Rules:
                 types, subs = self._apply_equal_rules(equality_pairs, types, subs)
 
         generic_pairs = self._pick_generic_pairs(generic_relations, subcomps)
-        return self._apply_generic_rules(generic_pairs, types), subs
+        return self._apply_generic_rules(generic_pairs, types, subs)
 
     def _pick_generic_pairs(self, graph, subcomponents):
         pairs = []
@@ -128,22 +126,27 @@ class Rules:
                     pairs.append( (var, child_var) )
         return pairs
 
-    def _apply_generic_rules(self, generic_pairs, types):
+    def _apply_generic_rules(self, generic_pairs, types, subs):
+        generic_mapped = defaultdict(set)
+
         while generic_pairs:
             instance, general = generic_pairs.pop()
             # Substitutions should have already been applied
             itype, gtype = types.get(instance), types.get(general)
+            generic_mapped[general].add(instance)
 
-            # TODO: find equality statements
-            # (e.g. [(1, 10), (2, 10)] should set v1 = v2)
             result, new_pairs = self._merge_generic(itype, gtype)
             if new_pairs:
-                print('new_pairs: ', list(new_pairs))
-                generic_pairs.extend(new_pairs)
+                generic_pairs.extend(list(new_pairs))
             if result is not None:
                 types[instance] = result
 
-        return types
+        equality_groups = [vs for vs in generic_mapped.values() if len(vs) > 1]
+        equality_pairs = []
+        for group in equality_groups:
+            equality_pairs.extend(self._equality_pairs_from_set(group))
+
+        return self._apply_equal_rules(equality_pairs, types, subs)
 
     def _merge_generic(self, itype, gtype):
         if gtype is None:
@@ -171,7 +174,7 @@ class Rules:
         for var, given in self._specified_types:
             result, new_rules = self._merge_types(types.get(var), given)
             if new_rules:
-                equal_rules.extend(new_rules)
+                equal_rules.extend(list(new_rules))
             types[var] = result
 
         return types, equal_rules
@@ -192,7 +195,7 @@ class Rules:
 
             result, new_rules = self._merge_types(type1, type2)
             if new_rules:
-                equal_rules.extend(new_rules)
+                equal_rules.extend(list(new_rules))
             subs = self._add_replacement(subs, replaced, replacement)
             if replaced in types:
                 del types[replaced]
