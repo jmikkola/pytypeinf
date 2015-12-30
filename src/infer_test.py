@@ -2,7 +2,7 @@
 
 import unittest
 
-from infer import Rules, Registry, InferenceError
+from infer import Rules, Registry, InferenceError, Result
 from expression import Literal
 
 class InferTest(unittest.TestCase):
@@ -12,11 +12,11 @@ class InferTest(unittest.TestCase):
 
     def test_applies_substitution(self):
         self.assertEqual(
-            ({1: 'Int'}, {2: 1}),
+            Result({1: 'Int'}, {2: 1}),
             Rules().specify(1, 'Int').equal(1, 2).infer()
         )
         self.assertEqual(
-            ({1: 'Int'}, {2: 1}),
+            Result({1: 'Int'}, {2: 1}),
             Rules().specify(1, 'Int').specify(2, 'Int').equal(1, 2).infer()
         )
 
@@ -30,7 +30,8 @@ class InferTest(unittest.TestCase):
             Rules().specify(1, 'Int').equal(3, 4).equal(1, 5).equal(1, 2)
             .equal(5, 2).equal(4, 5)
         )
-        self.assertEqual(({1: 'Int'}, {2: 1, 3: 1, 4: 1, 5: 1}), rules.infer())
+        expected = Result({1: 'Int'}, {2: 1, 3: 1, 4: 1, 5: 1})
+        self.assertEqual(expected, rules.infer())
 
     def test_rejects_invalid_generic_relations(self):
         rules = (
@@ -41,19 +42,16 @@ class InferTest(unittest.TestCase):
             rules.infer()
 
     def test_applies_generic_relations(self):
-        types, _ = Rules().specify(1, 'Int').instance_of(2, 1).infer()
-        self.assertEqual(types.get(2), 'Int')
+        result = Rules().specify(1, 'Int').instance_of(2, 1).infer()
+        self.assertEqual(result.types.get(2), 'Int')
 
     def test_ignores_reverse_relation(self):
-        types, _ = Rules().specify(1, 'Int').instance_of(1, 2).infer()
-        self.assertEqual(types.get(2), None)
+        result = Rules().specify(1, 'Int').instance_of(1, 2).infer()
+        self.assertEqual(result.types.get(2), None)
 
     def test_accepts_circular_generic_relations(self):
-        types, _ = (
-            Rules().specify(1, 'Int').instance_of(1, 2).instance_of(2, 1)
-            .infer()
-        )
-        self.assertEqual(types.get(2), 'Int')
+        rules = Rules().specify(1, 'Int').instance_of(1, 2).instance_of(2, 1)
+        self.assertEqual(rules.infer().types.get(2), 'Int')
 
     def test_applies_recurisve_equality(self):
         rules = (
@@ -61,9 +59,10 @@ class InferTest(unittest.TestCase):
             .specify(11, 'Int').specify(22, 'String')
             .equal(1, 2)
         )
-        types, subs = rules.infer()
-        self.assertEqual({1: ('Pair', 11, 22), 11: 'Int', 22: 'String'}, types)
-        self.assertEqual({2: 1, 21: 11, 12: 22}, subs)
+        result = rules.infer()
+        expected_types = {1: ('Pair', 11, 22), 11: 'Int', 22: 'String'}
+        self.assertEqual(expected_types, result.types)
+        self.assertEqual({2: 1, 21: 11, 12: 22}, result.subs)
 
     def test_applies_generics_recursively(self):
         rules = (
@@ -78,7 +77,7 @@ class InferTest(unittest.TestCase):
             12: 'String',
             22: 'String',
         }
-        self.assertEqual((expected_types, {}), rules.infer())
+        self.assertEqual(Result(expected_types, {}), rules.infer())
 
     def test_allows_multiple_generic_instantiations(self):
         rules = (
@@ -94,7 +93,7 @@ class InferTest(unittest.TestCase):
             21: 'Int',
             31: 'String',
         }
-        self.assertEqual((expected_types, {}), rules.infer())
+        self.assertEqual(Result(expected_types, {}), rules.infer())
 
     def test_applies_generics_for_multiple_levels(self):
         rules = (
@@ -107,7 +106,7 @@ class InferTest(unittest.TestCase):
             3: ('List', 11),
             11: 'Int',
         }
-        self.assertEqual((expected_types, {}), rules.infer())
+        self.assertEqual(Result(expected_types, {}), rules.infer())
 
     def test_catches_generic_errors_with_separation(self):
         rules = (
@@ -135,30 +134,6 @@ class InferTest(unittest.TestCase):
         id2 = registry.add_to_registry('y')
         self.assertEqual('x', registry.get_registered()[id1])
         self.assertEqual('y', registry.get_registered()[id2])
-
-    def test_inferring_literal(self):
-        registry = Registry()
-        rules = Rules()
-        l = Literal('Int', 123)
-        l_id = l.add_to_rules(rules, registry)
-
-        expected_types = {l_id: 'Int'}
-        self.assertEqual((expected_types, {}), rules.infer())
-
-'''
-TODO: test this:
-
-data CrazyList a = CL a (CrazyList [a]) | End
-
-f :: CrazyList a -> Int
-f End         = 0
-f (CL x rest) = g x rest
-
-g :: a -> CrazyList [a] -> Int
-g x rest = 1 + (f rest)
-
-in this system
-'''
 
 if __name__ == '__main__':
     unittest.main()

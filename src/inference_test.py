@@ -8,7 +8,7 @@ from expression import Let
 from expression import Literal
 from expression import TypedExpression
 from expression import Variable
-from infer import Rules, Registry, InferenceError
+from infer import Rules, Registry, InferenceError, Result
 
 class InferenceTest(unittest.TestCase):
     def setUp(self):
@@ -18,12 +18,12 @@ class InferenceTest(unittest.TestCase):
     def test_variable(self):
         v = Variable('foo')
         v_id = v.add_to_rules(self._rules, self._registry)
-        self.assertEqual(({}, {}), self._rules.infer())
+        self.assertEqual(Result({}, {}), self._rules.infer())
 
     def test_literal(self):
         l = Literal('Int', 123)
         l_id = l.add_to_rules(self._rules, self._registry)
-        self.assertEqual(({l_id: 'Int'}, {}), self._rules.infer())
+        self.assertEqual(Result({l_id: 'Int'}, {}), self._rules.infer())
 
     def test_typed_expression_mismatch(self):
         te = TypedExpression('String', Literal('Int', 123))
@@ -36,8 +36,9 @@ class InferenceTest(unittest.TestCase):
         te = TypedExpression('Int', lit)
         te_id = te.add_to_rules(self._rules, self._registry)
         lit_id = self._registry.get_id_for(lit)
-        # TODO: this test is relying on accidental order of processing
-        self.assertEqual(({te_id: 'Int'}, {lit_id: te_id}), self._rules.infer())
+        result = self._rules.infer()
+        self.assertEqual('Int', result.get_type_by_id(te_id))
+        self.assertEqual('Int', result.get_type_by_id(lit_id))
 
     def test_application(self):
         v = Variable('times2')
@@ -88,6 +89,21 @@ class InferenceTest(unittest.TestCase):
         }
         self.assertEqual((expected_types, expected_subs), self._rules.infer())
         '''
+
+'''
+TODO: test this:
+
+data CrazyList a = CL a (CrazyList [a]) | End
+
+f :: CrazyList a -> Int
+f End         = 0
+f (CL x rest) = g x rest
+
+g :: a -> CrazyList [a] -> Int
+g x rest = 1 + (f rest)
+
+in this system
+'''
 
 if __name__ == '__main__':
     unittest.main()

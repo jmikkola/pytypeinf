@@ -1,3 +1,5 @@
+from collections import namedtuple
+
 from graph import Graph
 
 class InferenceError(Exception):
@@ -5,6 +7,11 @@ class InferenceError(Exception):
 
 def dict_map(fn, d):
     return {k: fn(v) for k, v in d.items()}
+
+class Result(namedtuple('Result', 'types subs')):
+    def get_type_by_id(self, expr_id):
+        subbed_id = self.subs.get(expr_id, expr_id)
+        return self.types.get(subbed_id, None)
 
 class Registry:
     def __init__(self):
@@ -66,7 +73,8 @@ class Rules:
 
     def infer(self):
         types, subs = self._collapse_equal()
-        return self._apply_generics(types, subs)
+        types1, subs1 = self._apply_generics(types, subs)
+        return Result(types1, subs1)
 
     def _equality_pairs_from_set(self, items):
         if len(items) < 2:
