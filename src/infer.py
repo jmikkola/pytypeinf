@@ -25,22 +25,18 @@ class Result(namedtuple('Result', 'types subs')):
         return tuple([tname] + subtypes)
 
     def _replace_subtypes(self, subtypes):
-        type_set = set(subtypes)
-        direct_replacements = {
-            subtype: self.get_full_type_by_id(subtype)
-            for subtype in type_set
-        }
-        variable_replacements = {
-            subtype: 'a{}'.format(i)
-            for i, subtype in enumerate(type_set)
-        }
+        i = 0
         result = []
+        var_replacements = {}
         for subtype in subtypes:
-            direct_replacement = direct_replacements[subtype]
-            if direct_replacement is not None:
-                result.append(direct_replacement)
-            else:
-                result.append(variable_replacements[subtype])
+            replacement = self.get_full_type_by_id(subtype)
+            if replacement is None:
+                replacement = var_replacements.get(subtype, None)
+            if replacement is None:
+                replacement = 'a{}'.format(i)
+                i += 1
+                var_replacements[subtype] = replacement
+            result.append(replacement)
         return result
 
 class Registry:
