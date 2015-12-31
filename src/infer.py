@@ -151,10 +151,10 @@ class Rules:
         pairs = [(instance, general)]
         while pairs:
             instance, general = pairs.pop()
+            generic_mappings[general].add(instance)
             itype, gtype = types.get(instance), types.get(general)
 
             if itype is not None and gtype is not None:
-                generic_mappings[gtype].add(itype)
                 new_pairs = zip(self._type_vars(itype), self._type_vars(gtype))
                 pairs.extend(list(new_pairs))
 

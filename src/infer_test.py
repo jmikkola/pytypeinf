@@ -95,6 +95,18 @@ class InferTest(unittest.TestCase):
         }
         self.assertEqual(Result(expected_types, {}), rules.infer())
 
+    def test_applies_equality_constraint_from_generic(self):
+        rules = (
+            Rules().specify(1, ('Fn_2', 'var_x', 'var_x', 't_none'))
+            .specify('t_none', '()')
+            .specify(10, ('Fn_2', 11, 12, 13))
+            .specify(11, 'Int')
+            .instance_of(10, 1)
+        )
+        result = rules.infer()
+        self.assertEqual('Int', result.get_type_by_id(11))
+        self.assertEqual('Int', result.get_type_by_id(12))
+
     def test_applies_generics_for_multiple_levels(self):
         rules = (
             Rules().specify(1, ('List', 11)).specify(11, 'Int')
