@@ -1,0 +1,6 @@
+- Add if cases
+- Try out mutual recursion
+- Add some pre-defined functions (like '>')
+- Add class for representing types
+- Add support for compound types in expressions
+- Try adding type classes
