@@ -147,6 +147,55 @@ class InferenceTest(unittest.TestCase):
         with self.assertRaises(InferenceError):
             self._rules.infer()
 
+    def test_mutual_recursion(self):
+        '''
+        Equivalent ML:
+
+        let-rec f = if True then 123 else g
+                g = f
+        in f
+        '''
+        test = Literal('Bool', True)
+        if_case = Literal('Int', 123)
+        else_case = Application(Variable('g'), [])
+        if_block = If(test, if_case, else_case)
+        f_func = Lambda([], if_block)
+
+        g_body = Application(Variable('f'), [])
+        g_func = Lambda([], g_body)
+
+        let_body = Variable('f')
+        let_expr = Let([('f', f_func), ('g', g_func)], let_body)
+
+        let_id = let_expr.add_to_rules(self._rules, self._registry)
+        result = self._rules.infer()
+        self.assertEqual(('Fn_0', 'Int'), result.get_full_type_by_id(let_id))
+
+    def test_generic_mutual_recursion(self):
+        '''
+        Equivalent ML:
+
+        let-rec f x = if True then x else g x
+                g y = f y
+        in g
+        '''
+        test = Literal('Bool', True)
+        if_case = Variable('x')
+        else_case = Application(Variable('g'), [Variable('x')])
+        if_block = If(test, if_case, else_case)
+        f_func = Lambda(['x'], if_block)
+
+        g_body = Application(Variable('f'), [Variable('y')])
+        g_func = Lambda(['y'], g_body)
+
+        let_body = Variable('f')
+        let_expr = Let([('f', f_func), ('g', g_func)], let_body)
+
+        let_id = let_expr.add_to_rules(self._rules, self._registry)
+        result = self._rules.infer()
+        self.assertEqual(('Fn_1', 'a0', 'a0'), result.get_full_type_by_id(let_id))
+
+
 '''
 TODO: test this:
 
