@@ -263,11 +263,3 @@ class Rules:
     def _apply_sub_to_types(self, types, replaced, replacement):
         replacer = lambda t: self._apply_sub_to_type(t, replaced, replacement)
         return dict_map(replacer, types)
-
-    def dump_state(self):
-        ''' for debugging '''
-        return {
-            'equal_rules': self._equal_rules,
-            'specified_types': self._specified_types,
-            'generic_relations': self._generic_relations,
-        }
