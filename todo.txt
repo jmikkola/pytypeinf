@@ -1,4 +1,3 @@
-- Add if cases
 - Try out mutual recursion
 - Add some pre-defined functions (like '>')
 - Add class for representing types

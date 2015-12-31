@@ -3,6 +3,7 @@
 import unittest
 
 from expression import Application
+from expression import If
 from expression import Lambda
 from expression import Let
 from expression import Literal
@@ -114,6 +115,37 @@ class InferenceTest(unittest.TestCase):
 
         result = self._rules.infer()
         self.assertEqual('Int', result.get_type_by_id(lt_id))
+
+    def test_if_statement(self):
+        test = Literal('Bool', True)
+        if_case = Literal('Int', 123)
+        else_case = Literal('Int', 456)
+        if_block = If(test, if_case, else_case)
+
+        if_id = if_block.add_to_rules(self._rules, self._registry)
+        result = self._rules.infer()
+
+        self.assertEqual('Int', result.get_type_by_id(if_id))
+
+    def test_if_statement_requires_branches_to_equal(self):
+        test = Literal('Bool', True)
+        if_case = Literal('Int', 123)
+        else_case = Literal('Float', 456)
+        if_block = If(test, if_case, else_case)
+
+        if_id = if_block.add_to_rules(self._rules, self._registry)
+        with self.assertRaises(InferenceError):
+            self._rules.infer()
+
+    def test_if_statement_requires_test_to_be_boolean(self):
+        test = Literal('String', 'not a boolean')
+        if_case = Literal('Int', 123)
+        else_case = Literal('Int', 456)
+        if_block = If(test, if_case, else_case)
+
+        if_id = if_block.add_to_rules(self._rules, self._registry)
+        with self.assertRaises(InferenceError):
+            self._rules.infer()
 
 '''
 TODO: test this:

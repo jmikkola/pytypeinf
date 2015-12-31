@@ -144,3 +144,25 @@ class Lambda(Expression):
 
     def __repr__(self):
         return 'Lambda({}, {})'.format(self._arg_names, self._body)
+
+class If(Expression):
+    def __init__(self, test, if_case, else_case):
+        self._test = test
+        self._if_case = if_case
+        self._else_case = else_case
+
+    def add_to_rules(self, rules, registry):
+        id_ = registry.add_to_registry(self)
+
+        test_id = self._test.add_to_rules(rules, registry)
+        rules.specify(test_id, 'Bool')
+
+        if_id = self._if_case.add_to_rules(rules, registry)
+        rules.equal(id_, if_id)
+        else_id = self._else_case.add_to_rules(rules, registry)
+        rules.equal(id_, else_id)
+
+        return id_
+
+    def __repr__(self):
+        return 'If({}, {}, {}'.format(self._test, self._if_case, self._else_case)
