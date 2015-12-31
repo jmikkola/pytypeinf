@@ -127,13 +127,15 @@ class Rules:
         return pairs
 
     def _apply_generic_rules(self, generic_pairs, types, subs):
-        generic_mapped = defaultdict(set)
+        equality_pairs = []
 
         while generic_pairs:
             instance, general = generic_pairs.pop()
+            equality_pairs.extend(
+                self._walk_for_equality_pairs(types, instance, general)
+            )
             # Substitutions should have already been applied
             itype, gtype = types.get(instance), types.get(general)
-            generic_mapped[general].add(instance)
 
             result, new_pairs = self._merge_generic(itype, gtype)
             if new_pairs:
@@ -141,12 +143,26 @@ class Rules:
             if result is not None:
                 types[instance] = result
 
-        equality_groups = [vs for vs in generic_mapped.values() if len(vs) > 1]
+        return self._apply_equal_rules(equality_pairs, types, subs)
+
+    def _walk_for_equality_pairs(self, types, instance, general):
+        # TODO: use a structure more like this for applying generic rules
+        generic_mappings = defaultdict(set)
+        pairs = [(instance, general)]
+        while pairs:
+            instance, general = pairs.pop()
+            itype, gtype = types.get(instance), types.get(general)
+
+            if itype is not None and gtype is not None:
+                generic_mappings[gtype].add(itype)
+                new_pairs = zip(self._type_vars(itype), self._type_vars(gtype))
+                pairs.extend(list(new_pairs))
+
         equality_pairs = []
+        equality_groups = [vs for vs in generic_mappings.values() if len(vs) > 1]
         for group in equality_groups:
             equality_pairs.extend(self._equality_pairs_from_set(group))
-
-        return self._apply_equal_rules(equality_pairs, types, subs)
+        return equality_pairs
 
     def _merge_generic(self, itype, gtype):
         if gtype is None:
