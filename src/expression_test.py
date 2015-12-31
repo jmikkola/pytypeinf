@@ -96,16 +96,25 @@ class ExpressionTest(unittest.TestCase):
         self.assertIn((l1_id, 'Int'), self._rules.specify_calls)
         self.assertIn((l2_id, 'Int'), self._rules.specify_calls)
 
-    '''
+    def _has_call_matching(self, test, calls):
+        return any(test(call) for call in calls)
+
+    def _has_equal_call_matching(self, test):
+        return self._has_call_matching(test, self._rules.equal_calls)
+
     def test_let(self):
         l = Literal('Int', 123)
-        lt = Let([('x', Variable('y')), ('y', l)], Variable('x'))
-        ltid = lt.add_to_rules(self._rules, self._registry)
+        var_x = Variable('x')
+        var_y = Variable('y')
+        lt = Let([('x', var_y), ('y', l)], var_x)
+        lt_id = lt.add_to_rules(self._rules, self._registry)
         l_id = self._registry.get_id_for(l)
-        self.assertIn(('var_x', 'var_y'), self._rules.equal_calls)
-        self.assertIn(('var_y', l_id), self._rules.equal_calls)
-        self.assertIn((ltid, 'var_x'), self._rules.equal_calls)
-    '''
+        var_x_id = self._registry.get_id_for(var_x)
+        var_y_id = self._registry.get_id_for(var_y)
+
+        self.assertIn((lt_id, var_x_id), self._rules.equal_calls)
+        self.assertIn(('var_x_2', var_y_id), self._rules.equal_calls)
+        self.assertIn(('var_y_3', l_id), self._rules.equal_calls)
 
     def test_simple_lambda_expression(self):
         lit = Literal('Int', 123)
@@ -119,15 +128,13 @@ class ExpressionTest(unittest.TestCase):
         )
         self.assertIn((lit_id, 'Int'), self._rules.specify_calls)
 
-    '''
     def test_lambda_exprssion(self):
         lm = Lambda(['x'], Variable('x'))
         lmid = lm.add_to_rules(self._rules, self._registry)
         self.assertEqual(
-            [(1, ('Fn_1', 'var_x', 'var_x'))],
+            [(1, ('Fn_1', 'var_x_2', 'var_x_2'))],
              self._rules.specify_calls
          )
-    '''
 
     def test_let_with_lambda(self):
         lm = Lambda(['x'], Variable('x'))
