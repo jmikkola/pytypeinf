@@ -103,7 +103,7 @@ class Context:
             reachable.add(p)
 
             for child in self._graph[p]:
-                stack.push(child)
+                stack.append(child)
 
         return reachable
 
