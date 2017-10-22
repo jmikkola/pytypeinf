@@ -151,7 +151,7 @@ class Context:
             else:
                 raise NoTypeError(related_points)
 
-        return result
+        return result, self._vars
 
 
 Int = PrimType('Int')
@@ -160,5 +160,19 @@ Bool = PrimType('Bool')
 
 
 if __name__ == '__main__':
-    #print(Context().infer_types([(1,2), (2,3), (3,4)], {3: ArrowType(Int, Int), 5: Bool}))
-    print(Context().infer_types([(1,2), (3, 4)], {1: ArrowType(Int, Int), 2: ArrowType(Int, TypeVar('a')), 3: TypeVar('a'), 4: Int}))
+    a = TypeVar('a')
+    v1 = TypeVar('1')
+    v2 = TypeVar('2')
+    v3 = TypeVar('3')
+    v4 = TypeVar('4')
+    pairs = [(v1, v2), (v3, v4)]
+
+    t1 = ArrowType(Int, Int)
+    t2 = ArrowType(Int, a)
+    t3 = a
+    t4 = Int
+    known = {v1: t1, v2: t2, v3: t3, v4: t4}
+
+    result, vs = Context().infer_types(pairs, known)
+    print(result)
+    print(vs)
