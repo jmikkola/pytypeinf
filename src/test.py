@@ -106,7 +106,6 @@ class TypeInferTest(unittest.TestCase):
         known = {v1: t1, v2: t2, v3: t3, v4: t4, v5: t5, v6: t6}
 
         result, assumptions = Context().infer_types(pairs, known)
-        self.maxDiff = None
         self.assertEqual(result, {
             v1: ArrowType(Int, Int),
             v2: ArrowType(Int, Int),
@@ -116,9 +115,18 @@ class TypeInferTest(unittest.TestCase):
             v6: ArrowType(Bool, ArrowType(Int, Int)),
         })
 
+    def test_arrow_assumption(self):
+        a = TypeVar('a')
+        b = TypeVar('b')
+        pairs = [(v1, v2), (v3, v4)]
+        known = {v1: a, v2: ArrowType(b, Int), v3: Bool, v4: b}
 
-# TODO: create a test case that causes it to insert an assumption that contains
-# another variable
+        result, assumptions = Context().infer_types(pairs, known)
+        b2i = ArrowType(Bool, Int)
+        self.assertEqual(result, {v1: b2i, v2: b2i, v3: Bool, v4: Bool})
+        self.assertEqual(assumptions, {a: ArrowType(b, Int), b: Bool})
+        # TODO: could multiple assumptions containing type vars ever result in
+        # failing to unify two variables?
 
 if __name__ == '__main__':
     unittest.main()
