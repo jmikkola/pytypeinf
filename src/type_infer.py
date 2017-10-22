@@ -78,7 +78,38 @@ class TypeVar:
 
 class Context:
     def __init__(self):
-        self._vars = {} # Not quite right, actually needs to be a graph
+        self._assumptions = {}
+        self._graph = defaultdict(set)
+
+
+    def _add_edge(self, t1, t2):
+        self._graph[t1].add(t2)
+        self._graph[t2].add(t1)
+
+
+    def _build_graph(self, equal_pairs):
+        for a, b in equal_pairs:
+            self._add_edge(a, b)
+
+
+    def _get_reachable(self, v):
+        reachable = set()
+        stack = [v]
+
+        while stack:
+            p = stack.pop()
+            if p in reachable:
+                continue
+            reachable.add(p)
+
+            for child in self._graph[p]:
+                stack.push(child)
+
+        return reachable
+
+    def _add_assumption(self, v, t):
+        for tv in self._get_reachable(v):
+            self._assumptions[tv] = t
 
 
     def unify_types(self, types, related_points):
@@ -89,10 +120,10 @@ class Context:
 
 
     def unify(self, t1, t2, related_points):
-        if t1 in self._vars:
-            t1 = self._vars[t1]
-        if t2 in self._vars:
-            t2 = self._vars[t2]
+        if t1 in self._assumptions:
+            t1 = self._assumptions[t1]
+        if t2 in self._assumptions:
+            t2 = self._assumptions[t2]
 
         if isinstance(t1, PrimType) and isinstance(t2, PrimType):
             if t1 == t2:
@@ -104,28 +135,29 @@ class Context:
             right = self.unify(t1.right, t2.right, related_points)
             return ArrowType(left, right)
 
-        elif isinstance(t2, TypeVar):
-            self._vars[t2] = t1
-            return t1
-
         elif isinstance(t1, TypeVar):
-            self._vars[t1] = t2
-            return t2
+            if isinstance(t2, TypeVar):
+                self._add_edge(t1, t2)
+                return t1
+            else:
+                self._add_assumption(t1, t2)
+                return t2
+
+        elif isinstance(t2, TypeVar):
+            self._add_assumption(t2, t1)
+            return t1
 
         else:
             raise ConflictingTypeError(related_points, [t1, t2])
 
 
     def infer_types(self, equal_pairs, known_types):
-        graph = defaultdict(set)
-        for (a, b) in equal_pairs:
-            graph[a].add(b)
-            graph[b].add(a)
+        self._build_graph(equal_pairs)
 
         result = {p: t for p, t in known_types.items()}
         seen = set()
 
-        for key in graph:
+        for (key, _) in equal_pairs:
             stack = [key]
             types = set()
             related_points = set()
@@ -141,7 +173,7 @@ class Context:
                     continue
                 seen.add(point)
 
-                for child in graph[point]:
+                for child in self._graph[point]:
                     stack.append(child)
 
             if types:
@@ -151,7 +183,7 @@ class Context:
             else:
                 raise NoTypeError(related_points)
 
-        return result, self._vars
+        return result, self._assumptions
 
 
 Int = PrimType('Int')
@@ -173,6 +205,9 @@ if __name__ == '__main__':
     t4 = Int
     known = {v1: t1, v2: t2, v3: t3, v4: t4}
 
-    result, vs = Context().infer_types(pairs, known)
-    print(result)
-    print(vs)
+    result, assumptions = Context().infer_types(pairs, known)
+    print('result:')
+    for k,v in result.items():
+        print(k, '=', v)
+    print('assumptions:')
+    print(assumptions)
