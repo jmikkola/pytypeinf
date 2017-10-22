@@ -9,7 +9,7 @@ class GraphTest(unittest.TestCase):
         self.assertEqual(['a', 'b'], topological_order([('a', 'b')]))
 
         self.assertEqual(
-            ['a', 'b', 'c', 'd', 'e'],
+            ['a', 'c', 'b', 'd', 'e'],
             topological_order([
                 ('d', 'e'),
                 ('c', 'd'),

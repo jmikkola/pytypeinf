@@ -1,14 +1,16 @@
 from collections import defaultdict
 
+from sortedcontainers import SortedSet
+
 def topological_order(edge_list):
     '''
     [('a', 'b')] means that b depends on a, and a
     should come first in the output.
     '''
 
-    children = defaultdict(set)
+    children = defaultdict(SortedSet)
     counts = defaultdict(int)
-    nodes = set()
+    nodes = SortedSet()
 
     for a, b in edge_list:
         nodes.add(a)
