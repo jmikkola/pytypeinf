@@ -183,7 +183,18 @@ class Context:
             else:
                 raise NoTypeError(related_points)
 
-        return result, self._assumptions
+        return self._rewrite_result(result), self._assumptions
+
+    def _rewrite_result(self, result):
+        return {k: self._rewrite_type(t) for k, t in result.items()}
+
+    def _rewrite_type(self, t):
+        if isinstance(t, TypeVar):
+            return self._assumptions[t]
+        elif isinstance(t, ArrowType):
+            return ArrowType(self._rewrite_type(t.left), self._rewrite_type(t.right))
+        else:
+            return t
 
 
 Int = PrimType('Int')

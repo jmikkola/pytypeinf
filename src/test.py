@@ -88,7 +88,7 @@ class TypeInferTest(unittest.TestCase):
         self.assertEqual(assumptions, {a: Float, b: Float})
         i2f = ArrowType(Int, Float)
         b2f = ArrowType(Bool, Float)
-        self.assertEqual(result, {t1: i2f, t2: i2f, t3: b2f, t4: b2f})
+        self.assertEqual(result, {v1: i2f, v2: i2f, v3: b2f, v4: b2f})
 
 
     def test_complex_nested_match(self):
@@ -116,6 +116,9 @@ class TypeInferTest(unittest.TestCase):
             v6: ArrowType(Bool, ArrowType(Int, Int)),
         })
 
+
+# TODO: create a test case that causes it to insert an assumption that contains
+# another variable
 
 if __name__ == '__main__':
     unittest.main()
