@@ -200,25 +200,3 @@ class Context:
 Int = PrimType('Int')
 Float = PrimType('Float')
 Bool = PrimType('Bool')
-
-
-if __name__ == '__main__':
-    a = TypeVar('a')
-    v1 = TypeVar('1')
-    v2 = TypeVar('2')
-    v3 = TypeVar('3')
-    v4 = TypeVar('4')
-    pairs = [(v1, v2), (v3, v4)]
-
-    t1 = ArrowType(Int, Int)
-    t2 = ArrowType(Int, a)
-    t3 = a
-    t4 = Int
-    known = {v1: t1, v2: t2, v3: t3, v4: t4}
-
-    result, assumptions = Context().infer_types(pairs, known)
-    print('result:')
-    for k,v in result.items():
-        print(k, '=', v)
-    print('assumptions:')
-    print(assumptions)

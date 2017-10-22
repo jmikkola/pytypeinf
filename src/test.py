@@ -2,7 +2,8 @@
 
 import unittest
 
-from type_infer import TypeVar, ArrowType, Context, Int, Float, Bool, ConflictingTypeError
+from type_infer import TypeVar, ArrowType, Context, Int, Float, Bool
+from type_infer import ConflictingTypeError, NoTypeError
 
 
 v1 = TypeVar('1')
@@ -127,6 +128,16 @@ class TypeInferTest(unittest.TestCase):
         self.assertEqual(assumptions, {a: ArrowType(b, Int), b: Bool})
         # TODO: could multiple assumptions containing type vars ever result in
         # failing to unify two variables?
+
+    def test_unify_different_types(self):
+        with self.assertRaises(ConflictingTypeError):
+            Context().infer_types([(v1, v2)], {v1: Int, v2: Bool})
+        with self.assertRaises(ConflictingTypeError):
+            Context().infer_types([(v1, v2)], {v1: Int, v2: ArrowType(Int, Int)})
+
+    def test_no_type(self):
+        with self.assertRaises(NoTypeError):
+            Context().infer_types([(v1, v2)], {})
 
 if __name__ == '__main__':
     unittest.main()
